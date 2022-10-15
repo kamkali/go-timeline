@@ -1,0 +1,17 @@
+version: "3"
+services:
+  postgres:
+    image: postgres:15.0-alpine
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+    ports:
+    - 5432:5432
+    environment:
+    - POSTGRES_DB=timeline
+    - POSTGRES_PASSWORD=postgres
+    volumes:
+    - ./internal/db/schema/init.sql:/docker-entrypoint-initdb.d/init.sql
