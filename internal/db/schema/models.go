@@ -20,4 +20,25 @@ type Event struct {
 	DetailedDescription string
 	Graphic             []byte
 	Type                EventType
+	TypeID              string
+}
+
+type Process struct {
+	gorm.Model
+
+	Name                string
+	StartTime           time.Time
+	EndTime             time.Time
+	ShortDescription    string
+	DetailedDescription string
+	Graphic             []byte
+	Type                EventType
+}
+
+type Type struct {
+	gorm.Model
+
+	Name   string
+	Color  string
+	Events []Event
 }
