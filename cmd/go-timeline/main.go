@@ -1,9 +1,9 @@
 package main
 
 import (
-    "github.com/kamkali/go-timeline/internal/service"
+    "github.com/kamkali/go-timeline/internal/app"
 )
 
 func main() {
-    service.Run()
+    app.Run()
 }

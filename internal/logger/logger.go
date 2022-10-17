@@ -1,6 +1,7 @@
 package logger
 
 import (
+    "fmt"
     "github.com/kamkali/go-timeline/internal/config"
     "go.uber.org/zap"
     "sync"
@@ -15,11 +16,16 @@ type Logger interface {
     Debug(msg string)
     Warn(msg string)
     Error(msg string)
+    Errorf(format string, args ...any)
     Info(msg string)
 }
 
 type ZapLogger struct {
     logger *zap.Logger
+}
+
+func (z ZapLogger) Errorf(format string, args ...any) {
+    z.Error(fmt.Errorf(format, args).Error())
 }
 
 func GetLogger(config *config.Config) (l Logger, err error) {

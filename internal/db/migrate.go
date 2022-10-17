@@ -1,14 +1,14 @@
 package db
 
 import (
-	"github.com/kamkali/go-timeline/internal/db/schema"
-	"gorm.io/gorm"
+    "github.com/kamkali/go-timeline/internal/db/schema/models"
+    "gorm.io/gorm"
 )
 
 func Migrate(db *gorm.DB) error {
-	return db.AutoMigrate(
-		&schema.Type{},
-		&schema.Event{},
-		&schema.Process{},
-	)
+    return db.AutoMigrate(
+        &models.Type{},
+        &models.Event{},
+        &models.Process{},
+    )
 }
