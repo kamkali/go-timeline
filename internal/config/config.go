@@ -4,16 +4,16 @@ import (
 	"github.com/kelseyhightower/envconfig"
 )
 
-type AppStage int
+type AppStage string
 
 const (
-	StageTest AppStage = iota + 1
-	StageDevelopment
-	StageProduction
+	StageTest        AppStage = "TEST"
+	StageDevelopment AppStage = "DEV"
+	StageProduction  AppStage = "PROD"
 )
 
 type Config struct {
-	Stage AppStage
+	Stage AppStage `envconfig:"STAGE" default:"DEV"`
 
 	DB struct {
 		Host     string `envconfig:"DB_HOST" default:"localhost"`

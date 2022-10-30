@@ -1,23 +1,28 @@
 package schema
 
 import (
-    "github.com/kamkali/go-timeline/internal/domain"
+	"github.com/kamkali/go-timeline/internal/domain"
 )
 
 const (
-    ErrInternal   = "Internal server error"
-    ErrBadRequest = "Bad request"
-    ErrTimedOut   = "Timed out"
+	ErrInternal   = "Internal server error"
+	ErrBadRequest = "Bad request"
+	ErrNotFound   = "Not Found"
+	ErrTimedOut   = "Timed out"
 )
 
 type ServerError struct {
-    Description string `json:"description"`
+	Description string `json:"description"`
+}
+
+type EventCreatedResponse struct {
+	EventID uint `json:"event_id,omitempty"`
 }
 
 type EventResponse struct {
-    EventID uint `json:"event_id,omitempty"`
+	Event domain.Event `json:"event"`
 }
 
 type EventsResponse struct {
-    Events []domain.Event `json:"events"`
+	Events []domain.Event `json:"events"`
 }
