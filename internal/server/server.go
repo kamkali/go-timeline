@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/kamkali/go-timeline/internal/config"
 	"github.com/kamkali/go-timeline/internal/domain"
@@ -13,31 +14,34 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 )
 
 type Server struct {
-	log logger.Logger
+	router     *mux.Router
+	config     *config.Config
+	httpServer *http.Server
 
-	router       *mux.Router
-	config       *config.Config
+	log          logger.Logger
 	eventService domain.EventService
-	httpServer   *http.Server
+	typeService  domain.TypeService
 }
 
-func New(cfg *config.Config, eventService domain.EventService, log logger.Logger) *Server {
+func New(cfg *config.Config, log logger.Logger, eventService domain.EventService, typesService domain.TypeService) *Server {
 	r := mux.NewRouter()
 
 	s := &Server{
-		log:          log,
-		config:       cfg,
-		eventService: eventService,
-		router:       r,
+		router: r,
+		config: cfg,
 		httpServer: &http.Server{
 			Addr:    net.JoinHostPort(cfg.Server.Host, cfg.Server.Port),
 			Handler: r,
 		},
+		log:          log,
+		eventService: eventService,
+		typeService:  typesService,
 	}
 
 	s.registerRoutes()
@@ -46,25 +50,49 @@ func New(cfg *config.Config, eventService domain.EventService, log logger.Logger
 }
 
 func (s *Server) registerRoutes() {
-	s.router.HandleFunc("/events",
-		s.withTimeout(s.config.Server.TimeoutSeconds, s.listEvents()),
-	).Methods("GET")
+	{ // Events routes
+		s.router.HandleFunc("/events",
+			s.withTimeout(s.config.Server.TimeoutSeconds, s.listEvents()),
+		).Methods("GET")
 
-	s.router.HandleFunc("/events/{id}",
-		s.withTimeout(s.config.Server.TimeoutSeconds, s.getEvent()),
-	).Methods("GET")
+		s.router.HandleFunc("/events/{id}",
+			s.withTimeout(s.config.Server.TimeoutSeconds, s.getEvent()),
+		).Methods("GET")
 
-	s.router.HandleFunc("/events/{id}",
-		s.withTimeout(s.config.Server.TimeoutSeconds, s.updateEvent()),
-	).Methods("PUT")
+		s.router.HandleFunc("/events/{id}",
+			s.withTimeout(s.config.Server.TimeoutSeconds, s.updateEvent()),
+		).Methods("PUT")
 
-	s.router.HandleFunc("/events/{id}",
-		s.withTimeout(s.config.Server.TimeoutSeconds, s.deleteEvent()),
-	).Methods("DELETE")
+		s.router.HandleFunc("/events/{id}",
+			s.withTimeout(s.config.Server.TimeoutSeconds, s.deleteEvent()),
+		).Methods("DELETE")
 
-	s.router.HandleFunc("/events",
-		s.withTimeout(s.config.Server.TimeoutSeconds, s.createEvent()),
-	).Methods("POST")
+		s.router.HandleFunc("/events",
+			s.withTimeout(s.config.Server.TimeoutSeconds, s.createEvent()),
+		).Methods("POST")
+	}
+
+	{ // Types routes
+		s.router.HandleFunc("/types",
+			s.withTimeout(s.config.Server.TimeoutSeconds, s.listTypes()),
+		).Methods("GET")
+
+		s.router.HandleFunc("/types/{id}",
+			s.withTimeout(s.config.Server.TimeoutSeconds, s.getType()),
+		).Methods("GET")
+
+		s.router.HandleFunc("/types/{id}",
+			s.withTimeout(s.config.Server.TimeoutSeconds, s.updateType()),
+		).Methods("PUT")
+
+		s.router.HandleFunc("/types/{id}",
+			s.withTimeout(s.config.Server.TimeoutSeconds, s.deleteType()),
+		).Methods("DELETE")
+
+		s.router.HandleFunc("/types",
+			s.withTimeout(s.config.Server.TimeoutSeconds, s.createType()),
+		).Methods("POST")
+	}
 }
 
 func (s *Server) Start() {
@@ -90,7 +118,7 @@ func (s *Server) Start() {
 	if err := s.httpServer.Shutdown(ctx); err != nil {
 		log.Fatalf("Server Shutdown Failed:%+v", err)
 	}
-	log.Print("Server Exited Properly")
+	s.log.Info("Server Exited Properly")
 }
 
 func (s *Server) writeErrResponse(w http.ResponseWriter, err error, code int, desc string) {
@@ -105,4 +133,18 @@ func (s *Server) writeErrResponse(w http.ResponseWriter, err error, code int, de
 		s.log.Errorf("cannot write error response: %w", err.Error())
 		return
 	}
+}
+
+func (s *Server) getIDFromRequest(r *http.Request) (uint, error) {
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
+	if !ok {
+		return 0, fmt.Errorf("invalid id")
+	}
+	parseInt, err := strconv.ParseInt(id, 10, 32)
+	if err != nil {
+		return 0, err
+	}
+
+	return uint(parseInt), nil
 }

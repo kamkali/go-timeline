@@ -12,7 +12,7 @@ import (
 	"net/http"
 )
 
-func (s *Server) getEvent() http.HandlerFunc {
+func (s *Server) getType() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		id, err := s.getIDFromRequest(r)
@@ -21,7 +21,7 @@ func (s *Server) getEvent() http.HandlerFunc {
 			return
 		}
 
-		event, err := s.eventService.GetEvent(ctx, id)
+		dt, err := s.typeService.GetType(ctx, id)
 		if err != nil {
 			if errors.Is(err, domain.ErrNotFound) {
 				s.writeErrResponse(w, err, http.StatusNotFound, schema.ErrNotFound)
@@ -33,23 +33,23 @@ func (s *Server) getEvent() http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		eventResponse, err := json.Marshal(schema.EventResponse{Event: event})
+		typeResponse, err := json.Marshal(schema.TypeResponse{Type: dt})
 		if err != nil {
 			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
 			return
 		}
-		if _, err := w.Write(eventResponse); err != nil {
+		if _, err := w.Write(typeResponse); err != nil {
 			s.log.Error("cannot write response")
 			return
 		}
 	}
 }
 
-func (s *Server) updateEvent() http.HandlerFunc {
+func (s *Server) updateType() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		domainEvent, err := s.getEventPayload(r)
+		domainType, err := s.getTypePayload(r)
 		if err != nil {
 			s.writeErrResponse(w, err, http.StatusBadRequest, schema.ErrBadRequest)
 			return
@@ -61,7 +61,7 @@ func (s *Server) updateEvent() http.HandlerFunc {
 			return
 		}
 
-		if err := s.eventService.UpdateEvent(ctx, id, domainEvent); err != nil {
+		if err := s.typeService.UpdateType(ctx, id, domainType); err != nil {
 			if errors.Is(err, context.DeadlineExceeded) {
 				s.writeErrResponse(w, err, http.StatusRequestTimeout, schema.ErrTimedOut)
 				return
@@ -73,7 +73,7 @@ func (s *Server) updateEvent() http.HandlerFunc {
 	}
 }
 
-func (s *Server) deleteEvent() http.HandlerFunc {
+func (s *Server) deleteType() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		id, err := s.getIDFromRequest(r)
@@ -82,7 +82,11 @@ func (s *Server) deleteEvent() http.HandlerFunc {
 			return
 		}
 
-		if err := s.eventService.DeleteEvent(ctx, id); err != nil {
+		if err := s.typeService.DeleteType(ctx, id); err != nil {
+			if errors.Is(err, context.DeadlineExceeded) {
+				s.writeErrResponse(w, err, http.StatusRequestTimeout, schema.ErrTimedOut)
+				return
+			}
 			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
 			return
 		}
@@ -91,11 +95,11 @@ func (s *Server) deleteEvent() http.HandlerFunc {
 	}
 }
 
-func (s *Server) listEvents() http.HandlerFunc {
+func (s *Server) listTypes() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		events, err := s.eventService.ListEvents(ctx)
+		types, err := s.typeService.ListTypes(ctx)
 		if err != nil {
 			if errors.Is(err, context.DeadlineExceeded) {
 				s.writeErrResponse(w, err, http.StatusRequestTimeout, schema.ErrTimedOut)
@@ -107,29 +111,29 @@ func (s *Server) listEvents() http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		eventsResponse, err := json.Marshal(schema.EventsResponse{Events: events})
+		typesResponse, err := json.Marshal(schema.TypesResponse{Types: types})
 		if err != nil {
 			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
 			return
 		}
-		if _, err := w.Write(eventsResponse); err != nil {
+		if _, err := w.Write(typesResponse); err != nil {
 			s.log.Error("cannot write response")
 			return
 		}
 	}
 }
 
-func (s *Server) createEvent() http.HandlerFunc {
+func (s *Server) createType() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		domainEvent, err := s.getEventPayload(r)
+		domainType, err := s.getTypePayload(r)
 		if err != nil {
 			s.writeErrResponse(w, err, http.StatusBadRequest, schema.ErrBadRequest)
 			return
 		}
 
-		created, err := s.eventService.CreateEvent(ctx, domainEvent)
+		created, err := s.typeService.CreateType(ctx, domainType)
 		if err != nil {
 			if errors.Is(err, context.DeadlineExceeded) {
 				s.writeErrResponse(w, err, http.StatusRequestTimeout, schema.ErrTimedOut)
@@ -139,7 +143,7 @@ func (s *Server) createEvent() http.HandlerFunc {
 			return
 		}
 
-		er := schema.EventCreatedResponse{EventID: created}
+		er := schema.TypeCreatedResponse{TypeID: created}
 		resp, err := json.Marshal(er)
 		if err != nil {
 			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
@@ -154,19 +158,19 @@ func (s *Server) createEvent() http.HandlerFunc {
 	}
 }
 
-func (s *Server) getEventPayload(r *http.Request) (*domain.Event, error) {
+func (s *Server) getTypePayload(r *http.Request) (*domain.Type, error) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, fmt.Errorf("cannot read body")
 	}
-	var event schema.Event
-	if err := json.Unmarshal(body, &event); err != nil {
+	var dt schema.Type
+	if err := json.Unmarshal(body, &dt); err != nil {
 		return nil, fmt.Errorf("cannot unmarshal body")
 	}
-	domainEvent, err := codec.HTTPToDomainEvent(&event)
+	domainType, err := codec.HTTPToDomainType(&dt)
 	if err != nil {
 		return nil, fmt.Errorf("cannot codec to domain entity")
 	}
 
-	return domainEvent, nil
+	return domainType, nil
 }

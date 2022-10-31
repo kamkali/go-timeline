@@ -12,29 +12,31 @@ const (
 )
 
 type Event struct {
-	ID                  uint
-	Name                string
-	EventTime           time.Time
-	ShortDescription    string
-	DetailedDescription string
-	Graphic             []byte
-	Type                EventType
+	ID                  uint      `json:"id,omitempty"`
+	Name                string    `json:"name,omitempty"`
+	EventTime           time.Time `json:"event_time"`
+	ShortDescription    string    `json:"short_description,omitempty"`
+	DetailedDescription string    `json:"detailed_description,omitempty"`
+	Graphic             []byte    `json:"graphic,omitempty"`
+	Type                EventType `json:"type,omitempty"`
 }
 
 type Process struct {
-	Name                string
-	StartTime           time.Time
-	EndTime             time.Time
-	ShortDescription    string
-	DetailedDescription string
-	Graphic             []byte
-	Type                EventType
+	ID                  uint      `json:"id,omitempty"`
+	Name                string    `json:"name,omitempty"`
+	StartTime           time.Time `json:"start_time"`
+	EndTime             time.Time `json:"end_time"`
+	ShortDescription    string    `json:"short_description,omitempty"`
+	DetailedDescription string    `json:"detailed_description,omitempty"`
+	Graphic             []byte    `json:"graphic,omitempty"`
+	Type                EventType `json:"type,omitempty"`
 }
 
 type Type struct {
-	Name   string
-	Color  string
-	Events []Event
+	ID     uint    `json:"id,omitempty"`
+	Name   string  `json:"name,omitempty"`
+	Color  string  `json:"color,omitempty"`
+	Events []Event `json:"events,omitempty"`
 }
 
 type EventService interface {
@@ -58,13 +60,21 @@ type EventRepository interface {
 //go:generate mockery --name=EventRepository
 
 type TypeService interface {
-	CreateType(ctx context.Context, t *Type) (Type, error)
+	ListTypes(ctx context.Context) ([]Type, error)
+	CreateType(ctx context.Context, t *Type) (uint, error)
+	GetType(ctx context.Context, id uint) (Type, error)
+	UpdateType(ctx context.Context, id uint, Type *Type) error
+	DeleteType(ctx context.Context, id uint) error
 }
 
 //go:generate mockery --name=TypeService
 
 type TypeRepository interface {
-	CreateType(ctx context.Context, t *Type) (Type, error)
+	ListTypes(ctx context.Context) ([]Type, error)
+	CreateType(ctx context.Context, t *Type) (uint, error)
+	GetType(ctx context.Context, id uint) (Type, error)
+	UpdateType(ctx context.Context, id uint, Type *Type) error
+	DeleteType(ctx context.Context, id uint) error
 }
 
 //go:generate mockery --name=TypeRepository
