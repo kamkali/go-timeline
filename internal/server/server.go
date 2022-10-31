@@ -24,12 +24,19 @@ type Server struct {
 	config     *config.Config
 	httpServer *http.Server
 
-	log          logger.Logger
-	eventService domain.EventService
-	typeService  domain.TypeService
+	log            logger.Logger
+	eventService   domain.EventService
+	typeService    domain.TypeService
+	processService domain.ProcessService
 }
 
-func New(cfg *config.Config, log logger.Logger, eventService domain.EventService, typesService domain.TypeService) *Server {
+func New(
+	cfg *config.Config,
+	log logger.Logger,
+	eventService domain.EventService,
+	typesService domain.TypeService,
+	processService domain.ProcessService,
+) *Server {
 	r := mux.NewRouter()
 
 	s := &Server{
@@ -39,9 +46,10 @@ func New(cfg *config.Config, log logger.Logger, eventService domain.EventService
 			Addr:    net.JoinHostPort(cfg.Server.Host, cfg.Server.Port),
 			Handler: r,
 		},
-		log:          log,
-		eventService: eventService,
-		typeService:  typesService,
+		log:            log,
+		eventService:   eventService,
+		typeService:    typesService,
+		processService: processService,
 	}
 
 	s.registerRoutes()
@@ -91,6 +99,28 @@ func (s *Server) registerRoutes() {
 
 		s.router.HandleFunc("/types",
 			s.withTimeout(s.config.Server.TimeoutSeconds, s.createType()),
+		).Methods("POST")
+	}
+
+	{ // Process routes
+		s.router.HandleFunc("/process",
+			s.withTimeout(s.config.Server.TimeoutSeconds, s.listProcesses()),
+		).Methods("GET")
+
+		s.router.HandleFunc("/process/{id}",
+			s.withTimeout(s.config.Server.TimeoutSeconds, s.getProcess()),
+		).Methods("GET")
+
+		s.router.HandleFunc("/process/{id}",
+			s.withTimeout(s.config.Server.TimeoutSeconds, s.updateProcess()),
+		).Methods("PUT")
+
+		s.router.HandleFunc("/process/{id}",
+			s.withTimeout(s.config.Server.TimeoutSeconds, s.deleteProcess()),
+		).Methods("DELETE")
+
+		s.router.HandleFunc("/process",
+			s.withTimeout(s.config.Server.TimeoutSeconds, s.createProcess()),
 		).Methods("POST")
 	}
 }

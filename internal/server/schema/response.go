@@ -38,3 +38,15 @@ type TypesResponse struct {
 type TypeCreatedResponse struct {
 	TypeID uint `json:"type_id,omitempty"`
 }
+
+type ProcessCreatedResponse struct {
+	ProcessID uint `json:"process_id,omitempty"`
+}
+
+type ProcessResponse struct {
+	Process domain.Process `json:"process"`
+}
+
+type ProcessesResponse struct {
+	Processes []domain.Process `json:"processes"`
+}

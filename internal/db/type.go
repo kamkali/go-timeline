@@ -85,7 +85,7 @@ func (tr TypeRepository) ListTypes(ctx context.Context) ([]domain.Type, error) {
 		return nil, fmt.Errorf("db error on select query: %w", r.Error)
 	}
 
-	var domainTypes []domain.Type
+	domainTypes := []domain.Type{}
 	for _, e := range Types {
 		domainType, err := toDomainType(e)
 		if err != nil {

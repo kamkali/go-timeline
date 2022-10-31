@@ -117,7 +117,7 @@ func (t EventRepository) ListEvents(ctx context.Context) ([]domain.Event, error)
 		return nil, fmt.Errorf("db error on select query: %w", r.Error)
 	}
 
-	var domainEvents []domain.Event
+	domainEvents := []domain.Event{}
 	for _, e := range events {
 		domainEvent, err := toDomainEvent(e)
 		if err != nil {

@@ -5,6 +5,7 @@ import (
 	"github.com/kamkali/go-timeline/internal/db"
 	"github.com/kamkali/go-timeline/internal/domain"
 	"github.com/kamkali/go-timeline/internal/domain/eventservice"
+	"github.com/kamkali/go-timeline/internal/domain/processservice"
 	"github.com/kamkali/go-timeline/internal/domain/typeservice"
 	"github.com/kamkali/go-timeline/internal/logger"
 	"github.com/kamkali/go-timeline/internal/server"
@@ -17,11 +18,13 @@ type app struct {
 	config   *config.Config
 	database *gorm.DB
 
-	eventRepo    domain.EventRepository
-	eventService domain.EventService
-	typeRepo     domain.TypeRepository
-	typeService  domain.TypeService
-	server       *server.Server
+	eventRepo      domain.EventRepository
+	eventService   domain.EventService
+	typeRepo       domain.TypeRepository
+	typeService    domain.TypeService
+	processRepo    domain.ProcessRepository
+	processService domain.ProcessService
+	server         *server.Server
 }
 
 func (a *app) initConfig() {
@@ -60,15 +63,17 @@ func (a *app) initApp() {
 func (a *app) initTimelineRepositories() {
 	a.eventRepo = db.NewEventRepository(a.log, a.database)
 	a.typeRepo = db.NewTypeRepository(a.log, a.database)
+	a.processRepo = db.NewProcessRepository(a.log, a.database)
 }
 
 func (a *app) initTimelineServices() {
 	a.eventService = eventservice.New(a.log, a.eventRepo)
 	a.typeService = typeservice.New(a.log, a.typeRepo)
+	a.processService = processservice.New(a.log, a.processRepo)
 }
 
 func (a *app) initHTTPServer() {
-	a.server = server.New(a.config, a.log, a.eventService, a.typeService)
+	a.server = server.New(a.config, a.log, a.eventService, a.typeService, a.processService)
 }
 
 func (a *app) start() {

@@ -15,14 +15,14 @@ type TypeService struct {
 }
 
 // CreateType provides a mock function with given fields: ctx, t
-func (_m *TypeService) CreateType(ctx context.Context, t *domain.Type) (domain.Type, error) {
+func (_m *TypeService) CreateType(ctx context.Context, t *domain.Type) (uint, error) {
 	ret := _m.Called(ctx, t)
 
-	var r0 domain.Type
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.Type) domain.Type); ok {
+	var r0 uint
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.Type) uint); ok {
 		r0 = rf(ctx, t)
 	} else {
-		r0 = ret.Get(0).(domain.Type)
+		r0 = ret.Get(0).(uint)
 	}
 
 	var r1 error
@@ -33,6 +33,78 @@ func (_m *TypeService) CreateType(ctx context.Context, t *domain.Type) (domain.T
 	}
 
 	return r0, r1
+}
+
+// DeleteType provides a mock function with given fields: ctx, id
+func (_m *TypeService) DeleteType(ctx context.Context, id uint) error {
+	ret := _m.Called(ctx, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GetType provides a mock function with given fields: ctx, id
+func (_m *TypeService) GetType(ctx context.Context, id uint) (domain.Type, error) {
+	ret := _m.Called(ctx, id)
+
+	var r0 domain.Type
+	if rf, ok := ret.Get(0).(func(context.Context, uint) domain.Type); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(domain.Type)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, uint) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListTypes provides a mock function with given fields: ctx
+func (_m *TypeService) ListTypes(ctx context.Context) ([]domain.Type, error) {
+	ret := _m.Called(ctx)
+
+	var r0 []domain.Type
+	if rf, ok := ret.Get(0).(func(context.Context) []domain.Type); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]domain.Type)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateType provides a mock function with given fields: ctx, id, Type
+func (_m *TypeService) UpdateType(ctx context.Context, id uint, Type *domain.Type) error {
+	ret := _m.Called(ctx, id, Type)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint, *domain.Type) error); ok {
+		r0 = rf(ctx, id, Type)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 type mockConstructorTestingTNewTypeService interface {

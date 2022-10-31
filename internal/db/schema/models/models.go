@@ -1,44 +1,46 @@
 package models
 
 import (
-    "gorm.io/gorm"
-    "time"
+	"gorm.io/gorm"
+	"time"
 )
 
 type EventType string
 
 const (
-    EventTypeNormal EventType = "Normal"
+	EventTypeNormal EventType = "Normal"
 )
 
 type Event struct {
-    gorm.Model
+	gorm.Model
 
-    Name                string
-    EventTime           time.Time
-    ShortDescription    string
-    DetailedDescription string
-    Graphic             []byte
-    Type                EventType
-    TypeID              uint
+	Name                string
+	EventTime           time.Time
+	ShortDescription    string
+	DetailedDescription string
+	Graphic             []byte
+	Type                EventType
+	TypeID              uint
 }
 
 type Process struct {
-    gorm.Model
+	gorm.Model
 
-    Name                string
-    StartTime           time.Time
-    EndTime             time.Time
-    ShortDescription    string
-    DetailedDescription string
-    Graphic             []byte
-    Type                EventType
+	Name                string
+	StartTime           time.Time
+	EndTime             time.Time
+	ShortDescription    string
+	DetailedDescription string
+	Graphic             []byte
+	Type                EventType
+	TypeID              uint
 }
 
 type Type struct {
-    gorm.Model
+	gorm.Model
 
-    Name   string
-    Color  string
-    Events []Event
+	Name      string
+	Color     string
+	Events    []Event
+	Processes []Process
 }

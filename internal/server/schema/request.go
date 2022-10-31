@@ -13,3 +13,13 @@ type Type struct {
 	Name  string `json:"name,omitempty"`
 	Color string `json:"color,omitempty"`
 }
+
+type Process struct {
+	Name                string `json:"name,omitempty"`
+	StartTime           string `json:"start_time"`
+	EndTime             string `json:"end_time"`
+	ShortDescription    string `json:"short_description,omitempty"`
+	DetailedDescription string `json:"detailed_description,omitempty"`
+	Graphic             []byte `json:"graphic,omitempty"`
+	Type                string `json:"type,omitempty"`
+}

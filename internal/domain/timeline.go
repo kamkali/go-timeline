@@ -33,10 +33,11 @@ type Process struct {
 }
 
 type Type struct {
-	ID     uint    `json:"id,omitempty"`
-	Name   string  `json:"name,omitempty"`
-	Color  string  `json:"color,omitempty"`
-	Events []Event `json:"events,omitempty"`
+	ID      uint      `json:"id,omitempty"`
+	Name    string    `json:"name,omitempty"`
+	Color   string    `json:"color,omitempty"`
+	Events  []Event   `json:"-"`
+	Process []Process `json:"-"`
 }
 
 type EventService interface {
@@ -78,3 +79,23 @@ type TypeRepository interface {
 }
 
 //go:generate mockery --name=TypeRepository
+
+type ProcessService interface {
+	ListProcesses(ctx context.Context) ([]Process, error)
+	CreateProcess(ctx context.Context, t *Process) (uint, error)
+	GetProcess(ctx context.Context, id uint) (Process, error)
+	UpdateProcess(ctx context.Context, id uint, process *Process) error
+	DeleteProcess(ctx context.Context, id uint) error
+}
+
+//go:generate mockery --name=ProcessService
+
+type ProcessRepository interface {
+	ListProcesses(ctx context.Context) ([]Process, error)
+	CreateProcess(ctx context.Context, t *Process) (uint, error)
+	GetProcess(ctx context.Context, id uint) (Process, error)
+	UpdateProcess(ctx context.Context, id uint, process *Process) error
+	DeleteProcess(ctx context.Context, id uint) error
+}
+
+//go:generate mockery --name=ProcessRepository
