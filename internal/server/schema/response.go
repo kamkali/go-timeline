@@ -5,10 +5,11 @@ import (
 )
 
 const (
-	ErrInternal   = "Internal server error"
-	ErrBadRequest = "Bad request"
-	ErrNotFound   = "Not Found"
-	ErrTimedOut   = "Timed out"
+	ErrInternal     = "Internal server error"
+	ErrBadRequest   = "Bad request"
+	ErrNotFound     = "Not Found"
+	ErrTimedOut     = "Timed out"
+	ErrUnauthorized = "Unauthorized"
 )
 
 type ServerError struct {
@@ -49,4 +50,8 @@ type ProcessResponse struct {
 
 type ProcessesResponse struct {
 	Processes []domain.Process `json:"processes"`
+}
+
+type TokenResponse struct {
+	Token string `json:"token,omitempty"`
 }
