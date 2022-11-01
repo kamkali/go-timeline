@@ -1,7 +1,9 @@
 package config
 
 import (
+	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
+	"log"
 )
 
 type AppStage string
@@ -13,7 +15,10 @@ const (
 )
 
 type Config struct {
-	Stage AppStage `envconfig:"STAGE" default:"DEV"`
+	Stage         AppStage `envconfig:"STAGE" default:"DEV"`
+	SeedDB        bool     `envconfig:"SEED_DB" default:"false"`
+	AdminEmail    string   `envconfig:"ADMIN_EMAIL"`
+	AdminPassword string   `envconfig:"ADMIN_PASS"`
 
 	DB struct {
 		Host     string `envconfig:"DB_HOST" default:"localhost"`
@@ -28,10 +33,18 @@ type Config struct {
 		Port           string `envconfig:"SERVER_PORT" default:"8080"`
 		TimeoutSeconds uint   `envconfig:"SERVER_TIMEOUT" default:"30"`
 	}
+
+	Auth struct {
+		SecretKey string `envconfig:"SECRET_KEY"`
+		PublicKey string `envconfig:"PUBLIC_KEY"`
+	}
 }
 
 func LoadConfig() (*Config, error) {
 	var c Config
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file")
+	}
 	if err := envconfig.Process("timeline", &c); err != nil {
 		return nil, err
 	}

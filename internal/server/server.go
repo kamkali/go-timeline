@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/kamkali/go-timeline/internal/auth"
 	"github.com/kamkali/go-timeline/internal/config"
 	"github.com/kamkali/go-timeline/internal/domain"
 	"github.com/kamkali/go-timeline/internal/logger"
@@ -24,18 +25,23 @@ type Server struct {
 	config     *config.Config
 	httpServer *http.Server
 
-	log            logger.Logger
+	log        logger.Logger
+	jwtManager *auth.JWTManager
+
 	eventService   domain.EventService
 	typeService    domain.TypeService
 	processService domain.ProcessService
+	userService    domain.UserService
 }
 
 func New(
 	cfg *config.Config,
 	log logger.Logger,
+	manager *auth.JWTManager,
 	eventService domain.EventService,
 	typesService domain.TypeService,
 	processService domain.ProcessService,
+	userService domain.UserService,
 ) *Server {
 	r := mux.NewRouter()
 
@@ -47,9 +53,11 @@ func New(
 			Handler: r,
 		},
 		log:            log,
+		jwtManager:     manager,
 		eventService:   eventService,
 		typeService:    typesService,
 		processService: processService,
+		userService:    userService,
 	}
 
 	s.registerRoutes()
@@ -68,15 +76,15 @@ func (s *Server) registerRoutes() {
 		).Methods("GET")
 
 		s.router.HandleFunc("/events/{id}",
-			s.withTimeout(s.config.Server.TimeoutSeconds, s.updateEvent()),
+			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.updateEvent())),
 		).Methods("PUT")
 
 		s.router.HandleFunc("/events/{id}",
-			s.withTimeout(s.config.Server.TimeoutSeconds, s.deleteEvent()),
+			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.deleteEvent())),
 		).Methods("DELETE")
 
 		s.router.HandleFunc("/events",
-			s.withTimeout(s.config.Server.TimeoutSeconds, s.createEvent()),
+			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.createEvent())),
 		).Methods("POST")
 	}
 
@@ -90,15 +98,15 @@ func (s *Server) registerRoutes() {
 		).Methods("GET")
 
 		s.router.HandleFunc("/types/{id}",
-			s.withTimeout(s.config.Server.TimeoutSeconds, s.updateType()),
+			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.updateType())),
 		).Methods("PUT")
 
 		s.router.HandleFunc("/types/{id}",
-			s.withTimeout(s.config.Server.TimeoutSeconds, s.deleteType()),
+			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.deleteType())),
 		).Methods("DELETE")
 
 		s.router.HandleFunc("/types",
-			s.withTimeout(s.config.Server.TimeoutSeconds, s.createType()),
+			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.createType())),
 		).Methods("POST")
 	}
 
@@ -112,15 +120,21 @@ func (s *Server) registerRoutes() {
 		).Methods("GET")
 
 		s.router.HandleFunc("/process/{id}",
-			s.withTimeout(s.config.Server.TimeoutSeconds, s.updateProcess()),
+			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.updateProcess())),
 		).Methods("PUT")
 
 		s.router.HandleFunc("/process/{id}",
-			s.withTimeout(s.config.Server.TimeoutSeconds, s.deleteProcess()),
+			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.deleteProcess())),
 		).Methods("DELETE")
 
 		s.router.HandleFunc("/process",
-			s.withTimeout(s.config.Server.TimeoutSeconds, s.createProcess()),
+			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.createProcess())),
+		).Methods("POST")
+	}
+
+	{ // User routes
+		s.router.HandleFunc("/login",
+			s.withTimeout(s.config.Server.TimeoutSeconds, s.login()),
 		).Methods("POST")
 	}
 }
@@ -152,7 +166,7 @@ func (s *Server) Start() {
 }
 
 func (s *Server) writeErrResponse(w http.ResponseWriter, err error, code int, desc string) {
-	s.log.Errorf("error response: %s", err.Error())
+	s.log.Error(fmt.Errorf("error response: %w", err).Error())
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	jsonErr, err := json.Marshal(schema.ServerError{Description: desc})
@@ -160,7 +174,7 @@ func (s *Server) writeErrResponse(w http.ResponseWriter, err error, code int, de
 		return
 	}
 	if _, err := w.Write(jsonErr); err != nil {
-		s.log.Errorf("cannot write error response: %w", err.Error())
+		s.log.Error(fmt.Errorf("cannot write error response: %w", err).Error())
 		return
 	}
 }

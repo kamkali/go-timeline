@@ -1,14 +1,17 @@
 package app
 
 import (
+	"github.com/kamkali/go-timeline/internal/auth"
 	"github.com/kamkali/go-timeline/internal/config"
 	"github.com/kamkali/go-timeline/internal/db"
 	"github.com/kamkali/go-timeline/internal/domain"
 	"github.com/kamkali/go-timeline/internal/domain/eventservice"
 	"github.com/kamkali/go-timeline/internal/domain/processservice"
 	"github.com/kamkali/go-timeline/internal/domain/typeservice"
+	"github.com/kamkali/go-timeline/internal/domain/userservice"
 	"github.com/kamkali/go-timeline/internal/logger"
 	"github.com/kamkali/go-timeline/internal/server"
+	"golang.org/x/net/context"
 	"gorm.io/gorm"
 	"log"
 )
@@ -24,7 +27,11 @@ type app struct {
 	typeService    domain.TypeService
 	processRepo    domain.ProcessRepository
 	processService domain.ProcessService
-	server         *server.Server
+	userService    domain.UserService
+	userRepository domain.UserRepository
+
+	jwtManager *auth.JWTManager
+	server     *server.Server
 }
 
 func (a *app) initConfig() {
@@ -57,6 +64,7 @@ func (a *app) initApp() {
 	a.initDB()
 	a.initTimelineRepositories()
 	a.initTimelineServices()
+	a.initJWTManager()
 	a.initHTTPServer()
 }
 
@@ -64,16 +72,31 @@ func (a *app) initTimelineRepositories() {
 	a.eventRepo = db.NewEventRepository(a.log, a.database)
 	a.typeRepo = db.NewTypeRepository(a.log, a.database)
 	a.processRepo = db.NewProcessRepository(a.log, a.database)
+	a.userRepository = db.NewUserRepository(a.log, a.database)
 }
 
 func (a *app) initTimelineServices() {
 	a.eventService = eventservice.New(a.log, a.eventRepo)
 	a.typeService = typeservice.New(a.log, a.typeRepo)
 	a.processService = processservice.New(a.log, a.processRepo)
+	a.userService = userservice.New(a.log, a.userRepository)
+}
+
+func (a *app) initJWTManager() {
+	manager, err := auth.NewJWTManager(a.log, a.config.Auth.SecretKey, a.config.Auth.PublicKey)
+	if err != nil {
+		log.Fatalf("cannot instantiate JWT Manager")
+	}
+	a.jwtManager = manager
 }
 
 func (a *app) initHTTPServer() {
-	a.server = server.New(a.config, a.log, a.eventService, a.typeService, a.processService)
+	a.server = server.New(
+		a.config,
+		a.log,
+		a.jwtManager,
+		a.eventService, a.typeService, a.processService, a.userService,
+	)
 }
 
 func (a *app) start() {
@@ -81,8 +104,25 @@ func (a *app) start() {
 		log.Fatalf("couldn't migrate db: %v\n", err)
 	}
 	a.log.Debug("successfully migrated database")
+	if a.config.SeedDB {
+		if err := a.seedDBWithAdmin(a.config); err != nil {
+			log.Fatalf("cannot seed DB with admin info")
+		}
+	}
 
 	a.server.Start()
+}
+
+func (a *app) seedDBWithAdmin(c *config.Config) error {
+	u := domain.User{
+		Email:    c.AdminEmail,
+		Password: c.AdminPassword,
+	}
+	if err := a.userService.CreateUser(context.Background(), u); err != nil {
+		return err
+	}
+	a.log.Info("Seeded the DB with admin user")
+	return nil
 }
 
 func Run() {
