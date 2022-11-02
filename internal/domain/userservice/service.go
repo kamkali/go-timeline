@@ -14,6 +14,13 @@ type UserService struct {
 	repo domain.UserRepository
 }
 
+func (t UserService) ChangePassword(ctx context.Context, email, password string) error {
+	if password == "" {
+		return fmt.Errorf("empty password")
+	}
+	return t.repo.ChangePassword(ctx, email, password)
+}
+
 func (t UserService) LoginUser(ctx context.Context, loggingUser *domain.User) (domain.User, error) {
 	if loggingUser.Email == "" || loggingUser.Password == "" {
 		return domain.User{}, fmt.Errorf("empty email or password")

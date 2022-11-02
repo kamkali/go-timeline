@@ -52,7 +52,7 @@ func (j *JWTManager) GenerateToken(username string) (string, error) {
 	return tokenString, nil
 }
 
-func (j *JWTManager) VerifyToken(t string) (bool, error) {
+func (j *JWTManager) VerifyToken(t string) (*jwt.Token, error) {
 	token, err := jwt.Parse(t, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodEd25519); !ok {
 			return nil, fmt.Errorf("invalid token signing method")
@@ -60,8 +60,22 @@ func (j *JWTManager) VerifyToken(t string) (bool, error) {
 		return j.publicKey.getPubKey(), nil
 	})
 	if err != nil {
-		return false, fmt.Errorf("token parse: %w", err)
+		return nil, fmt.Errorf("token parse: %w", err)
 	}
 
-	return token.Valid, nil
+	return token, nil
+}
+
+func (j *JWTManager) GetClaims(t string) (jwt.MapClaims, error) {
+	token, err := j.VerifyToken(t)
+	if err != nil {
+		return nil, err
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return nil, fmt.Errorf("invalid token")
+	}
+
+	return claims, nil
 }

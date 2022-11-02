@@ -16,6 +16,25 @@ type UserRepository struct {
 	db *gorm.DB
 }
 
+func (ur UserRepository) ChangePassword(ctx context.Context, email, password string) error {
+	user, err := ur.GetUserByEmail(ctx, email)
+	if err != nil {
+		return err
+	}
+	dbUser, err := toDBUser(user)
+	if err != nil {
+		return err
+	}
+
+	dbUser.ID = user.ID
+	dbUser.Password = password
+	if err := ur.db.WithContext(ctx).Save(&dbUser).Error; err != nil {
+		return fmt.Errorf("db error on update query: %w", err)
+	}
+
+	return nil
+}
+
 func NewUserRepository(log logger.Logger, db *gorm.DB) *UserRepository {
 	return &UserRepository{log: log, db: db}
 }

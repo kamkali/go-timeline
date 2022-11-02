@@ -28,3 +28,7 @@ type User struct {
 	Username string `json:"username,omitempty"`
 	Password string `json:"password,omitempty"`
 }
+
+type PasswordChange struct {
+	NewPassword string `json:"new_password,omitempty"`
+}

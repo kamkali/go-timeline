@@ -136,6 +136,11 @@ func (s *Server) registerRoutes() {
 		s.router.HandleFunc("/login",
 			s.withTimeout(s.config.Server.TimeoutSeconds, s.login()),
 		).Methods("POST")
+
+		s.router.HandleFunc("/change_password",
+			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.changePassword())),
+		).Methods("POST")
+
 	}
 }
 

@@ -13,6 +13,7 @@ type User struct {
 type UserService interface {
 	LoginUser(ctx context.Context, user *User) (User, error)
 	CreateUser(ctx context.Context, user User) error
+	ChangePassword(ctx context.Context, email, password string) error
 }
 
 //go:generate mockery --name=UserService
@@ -20,6 +21,7 @@ type UserService interface {
 type UserRepository interface {
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	CreateUser(ctx context.Context, user User) error
+	ChangePassword(ctx context.Context, email, password string) error
 }
 
 //go:generate mockery --name=UserRepository
