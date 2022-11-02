@@ -67,77 +67,77 @@ func New(
 
 func (s *Server) registerRoutes() {
 	{ // Events routes
-		s.router.HandleFunc("/events",
+		s.router.HandleFunc("/api/events",
 			s.withTimeout(s.config.Server.TimeoutSeconds, s.listEvents()),
 		).Methods("GET")
 
-		s.router.HandleFunc("/events/{id}",
+		s.router.HandleFunc("/api/events/{id}",
 			s.withTimeout(s.config.Server.TimeoutSeconds, s.getEvent()),
 		).Methods("GET")
 
-		s.router.HandleFunc("/events/{id}",
+		s.router.HandleFunc("/api/events/{id}",
 			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.updateEvent())),
 		).Methods("PUT")
 
-		s.router.HandleFunc("/events/{id}",
+		s.router.HandleFunc("/api/events/{id}",
 			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.deleteEvent())),
 		).Methods("DELETE")
 
-		s.router.HandleFunc("/events",
+		s.router.HandleFunc("/api/events",
 			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.createEvent())),
 		).Methods("POST")
 	}
 
 	{ // Types routes
-		s.router.HandleFunc("/types",
+		s.router.HandleFunc("/api/types",
 			s.withTimeout(s.config.Server.TimeoutSeconds, s.listTypes()),
 		).Methods("GET")
 
-		s.router.HandleFunc("/types/{id}",
+		s.router.HandleFunc("/api/types/{id}",
 			s.withTimeout(s.config.Server.TimeoutSeconds, s.getType()),
 		).Methods("GET")
 
-		s.router.HandleFunc("/types/{id}",
+		s.router.HandleFunc("/api/types/{id}",
 			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.updateType())),
 		).Methods("PUT")
 
-		s.router.HandleFunc("/types/{id}",
+		s.router.HandleFunc("/api/types/{id}",
 			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.deleteType())),
 		).Methods("DELETE")
 
-		s.router.HandleFunc("/types",
+		s.router.HandleFunc("/api/types",
 			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.createType())),
 		).Methods("POST")
 	}
 
 	{ // Process routes
-		s.router.HandleFunc("/process",
+		s.router.HandleFunc("/api/process",
 			s.withTimeout(s.config.Server.TimeoutSeconds, s.listProcesses()),
 		).Methods("GET")
 
-		s.router.HandleFunc("/process/{id}",
+		s.router.HandleFunc("/api/process/{id}",
 			s.withTimeout(s.config.Server.TimeoutSeconds, s.getProcess()),
 		).Methods("GET")
 
-		s.router.HandleFunc("/process/{id}",
+		s.router.HandleFunc("/api/process/{id}",
 			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.updateProcess())),
 		).Methods("PUT")
 
-		s.router.HandleFunc("/process/{id}",
+		s.router.HandleFunc("/api/process/{id}",
 			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.deleteProcess())),
 		).Methods("DELETE")
 
-		s.router.HandleFunc("/process",
+		s.router.HandleFunc("/api/process",
 			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.createProcess())),
 		).Methods("POST")
 	}
 
 	{ // User routes
-		s.router.HandleFunc("/login",
+		s.router.HandleFunc("/api/login",
 			s.withTimeout(s.config.Server.TimeoutSeconds, s.login()),
 		).Methods("POST")
 
-		s.router.HandleFunc("/change_password",
+		s.router.HandleFunc("/api/change_password",
 			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.changePassword())),
 		).Methods("POST")
 
