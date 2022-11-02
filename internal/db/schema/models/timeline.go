@@ -5,12 +5,6 @@ import (
 	"time"
 )
 
-type EventType string
-
-const (
-	EventTypeNormal EventType = "Normal"
-)
-
 type Event struct {
 	gorm.Model
 
@@ -19,7 +13,6 @@ type Event struct {
 	ShortDescription    string
 	DetailedDescription string
 	Graphic             []byte
-	Type                EventType
 	TypeID              uint
 }
 
@@ -32,7 +25,6 @@ type Process struct {
 	ShortDescription    string
 	DetailedDescription string
 	Graphic             []byte
-	Type                EventType
 	TypeID              uint
 }
 

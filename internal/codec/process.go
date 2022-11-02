@@ -8,10 +8,6 @@ import (
 )
 
 func HTTPToDomainProcess(e *schema.Process) (*domain.Process, error) {
-	eventType, ok := HTTPEventTypeToDomain[e.Type]
-	if !ok {
-		return nil, fmt.Errorf("unknown event type")
-	}
 	parsedStartTime, err := time.Parse(time.RFC3339, e.StartTime)
 	if err != nil {
 		return nil, fmt.Errorf("invalid time")
@@ -27,7 +23,7 @@ func HTTPToDomainProcess(e *schema.Process) (*domain.Process, error) {
 		ShortDescription:    e.ShortDescription,
 		DetailedDescription: e.DetailedDescription,
 		Graphic:             e.Graphic,
-		Type:                eventType,
+		TypeID:              e.TypeID,
 	}
 
 	return domainProcess, nil

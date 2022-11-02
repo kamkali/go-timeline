@@ -21,10 +21,6 @@ func NewProcessRepository(log logger.Logger, db *gorm.DB) *ProcessRepository {
 }
 
 func toDBProcess(de *domain.Process) (*models.Process, error) {
-	dbType, ok := toDBEventType[de.Type]
-	if !ok {
-		return nil, fmt.Errorf("unknown process type")
-	}
 	return &models.Process{
 		Name:                de.Name,
 		StartTime:           de.StartTime,
@@ -32,7 +28,7 @@ func toDBProcess(de *domain.Process) (*models.Process, error) {
 		ShortDescription:    de.ShortDescription,
 		DetailedDescription: de.DetailedDescription,
 		Graphic:             de.Graphic,
-		Type:                dbType,
+		TypeID:              de.TypeID,
 	}, nil
 }
 
@@ -57,10 +53,6 @@ func (t ProcessRepository) UpdateProcess(ctx context.Context, id uint, process *
 	if r.Error != nil {
 		return fmt.Errorf("db error on select query: %w", r.Error)
 	}
-	processType, ok := toDBEventType[process.Type]
-	if !ok {
-		return fmt.Errorf("unknown process type")
-	}
 
 	e.Name = process.Name
 	e.StartTime = process.StartTime
@@ -68,7 +60,7 @@ func (t ProcessRepository) UpdateProcess(ctx context.Context, id uint, process *
 	e.ShortDescription = process.ShortDescription
 	e.DetailedDescription = process.DetailedDescription
 	e.Graphic = process.Graphic
-	e.Type = processType
+	e.TypeID = process.TypeID
 
 	if err := t.db.Save(&e).Error; err != nil {
 		return fmt.Errorf("db error on update query: %w", r.Error)
@@ -91,9 +83,9 @@ func (t ProcessRepository) CreateProcess(ctx context.Context, process *domain.Pr
 	}
 
 	typ := models.Type{}
-	result := t.db.Table("types").Find(&typ, "name = ?", process.Type)
+	result := t.db.Table("types").Find(&typ, process.TypeID)
 	if result.Error != nil || result.RowsAffected == 0 {
-		return 0, fmt.Errorf("cannot find type of name %s", process.Type)
+		return 0, fmt.Errorf("cannot find type of name %s", process.TypeID)
 	}
 	dbProcess.TypeID = typ.ID
 
@@ -124,10 +116,6 @@ func (t ProcessRepository) ListProcesses(ctx context.Context) ([]domain.Process,
 }
 
 func toDomainProcess(e models.Process) (domain.Process, error) {
-	processType, ok := toDomainEventType[e.Type]
-	if !ok {
-		return domain.Process{}, fmt.Errorf("unknown process type")
-	}
 	domainProcess := domain.Process{
 		ID:                  e.ID,
 		Name:                e.Name,
@@ -136,7 +124,7 @@ func toDomainProcess(e models.Process) (domain.Process, error) {
 		ShortDescription:    e.ShortDescription,
 		DetailedDescription: e.DetailedDescription,
 		Graphic:             e.Graphic,
-		Type:                processType,
+		TypeID:              e.TypeID,
 	}
 	return domainProcess, nil
 }

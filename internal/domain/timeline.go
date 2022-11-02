@@ -5,12 +5,6 @@ import (
 	"time"
 )
 
-type EventType string
-
-const (
-	EventTypeNormal EventType = "normal"
-)
-
 type Event struct {
 	ID                  uint      `json:"id,omitempty"`
 	Name                string    `json:"name,omitempty"`
@@ -18,7 +12,7 @@ type Event struct {
 	ShortDescription    string    `json:"short_description,omitempty"`
 	DetailedDescription string    `json:"detailed_description,omitempty"`
 	Graphic             []byte    `json:"graphic,omitempty"`
-	Type                EventType `json:"type,omitempty"`
+	TypeID              uint      `json:"type_id,omitempty"`
 }
 
 type Process struct {
@@ -29,7 +23,7 @@ type Process struct {
 	ShortDescription    string    `json:"short_description,omitempty"`
 	DetailedDescription string    `json:"detailed_description,omitempty"`
 	Graphic             []byte    `json:"graphic,omitempty"`
-	Type                EventType `json:"type,omitempty"`
+	TypeID              uint      `json:"type_id,omitempty"`
 }
 
 type Type struct {

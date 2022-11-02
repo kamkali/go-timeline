@@ -20,26 +20,13 @@ func NewEventRepository(log logger.Logger, db *gorm.DB) *EventRepository {
 	return &EventRepository{log: log, db: db}
 }
 
-var toDBEventType = map[domain.EventType]models.EventType{
-	domain.EventTypeNormal: models.EventTypeNormal,
-}
-
-var toDomainEventType = map[models.EventType]domain.EventType{
-	models.EventTypeNormal: domain.EventTypeNormal,
-}
-
 func toDBEvent(de *domain.Event) (*models.Event, error) {
-	dbType, ok := toDBEventType[de.Type]
-	if !ok {
-		return nil, fmt.Errorf("unknown event type")
-	}
 	return &models.Event{
 		Name:                de.Name,
 		EventTime:           de.EventTime,
 		ShortDescription:    de.ShortDescription,
 		DetailedDescription: de.DetailedDescription,
 		Graphic:             de.Graphic,
-		Type:                dbType,
 	}, nil
 }
 
@@ -64,17 +51,12 @@ func (t EventRepository) UpdateEvent(ctx context.Context, id uint, event *domain
 	if r.Error != nil {
 		return fmt.Errorf("db error on select query: %w", r.Error)
 	}
-	eventType, ok := toDBEventType[event.Type]
-	if !ok {
-		return fmt.Errorf("unknown event type")
-	}
 
 	e.Name = event.Name
 	e.EventTime = event.EventTime
 	e.ShortDescription = event.ShortDescription
 	e.DetailedDescription = event.DetailedDescription
 	e.Graphic = event.Graphic
-	e.Type = eventType
 
 	if err := t.db.Save(&e).Error; err != nil {
 		return fmt.Errorf("db error on update query: %w", r.Error)
@@ -97,9 +79,9 @@ func (t EventRepository) CreateEvent(ctx context.Context, event *domain.Event) (
 	}
 
 	typ := models.Type{}
-	result := t.db.Table("types").Find(&typ, "name = ?", event.Type)
+	result := t.db.Table("types").Find(&typ, event.TypeID)
 	if result.Error != nil || result.RowsAffected == 0 {
-		return 0, fmt.Errorf("cannot find type of name %s", event.Type)
+		return 0, fmt.Errorf("cannot find type %d", event.TypeID)
 	}
 	dbEvent.TypeID = typ.ID
 
@@ -130,10 +112,6 @@ func (t EventRepository) ListEvents(ctx context.Context) ([]domain.Event, error)
 }
 
 func toDomainEvent(e models.Event) (domain.Event, error) {
-	eventType, ok := toDomainEventType[e.Type]
-	if !ok {
-		return domain.Event{}, fmt.Errorf("unknown event type")
-	}
 	domainEvent := domain.Event{
 		ID:                  e.ID,
 		Name:                e.Name,
@@ -141,7 +119,7 @@ func toDomainEvent(e models.Event) (domain.Event, error) {
 		ShortDescription:    e.ShortDescription,
 		DetailedDescription: e.DetailedDescription,
 		Graphic:             e.Graphic,
-		Type:                eventType,
+		TypeID:              e.TypeID,
 	}
 	return domainEvent, nil
 }

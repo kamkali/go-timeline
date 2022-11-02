@@ -6,7 +6,7 @@ type Event struct {
 	ShortDescription    string `json:"short_description,omitempty"`
 	DetailedDescription string `json:"detailed_description,omitempty"`
 	Graphic             []byte `json:"graphic,omitempty"`
-	Type                string `json:"type,omitempty"`
+	TypeID              uint   `json:"type_id,omitempty"`
 }
 
 type Type struct {
@@ -21,7 +21,7 @@ type Process struct {
 	ShortDescription    string `json:"short_description,omitempty"`
 	DetailedDescription string `json:"detailed_description,omitempty"`
 	Graphic             []byte `json:"graphic,omitempty"`
-	Type                string `json:"type,omitempty"`
+	TypeID              uint   `json:"type_id,omitempty"`
 }
 
 type User struct {
