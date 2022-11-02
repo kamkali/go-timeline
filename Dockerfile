@@ -4,20 +4,21 @@ RUN apk add --no-cache git
 
 WORKDIR /app
 
-COPY go.mod ./
-COPY go.sum ./
+COPY go.mod .
+COPY go.sum .
 
 RUN go mod download
 
 COPY ./ ./
 
-RUN cd ./cmd && CGO_ENABLED=0 go build -o app
+RUN CGO_ENABLED=0 go build -o ./app_build ./cmd/go-timeline
 
-FROM alpine as runner
+FROM scratch as runner
 
-COPY --from=build /app/.env /
-COPY --from=build /app/cmd/app /
+COPY --from=build ./app/.env ./
+
+COPY --from=build ./app/app_build ./app
 
 EXPOSE 8080
 
-ENTRYPOINT ["/app"]
+ENTRYPOINT ["./app"]

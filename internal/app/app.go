@@ -11,9 +11,11 @@ import (
 	"github.com/kamkali/go-timeline/internal/domain/userservice"
 	"github.com/kamkali/go-timeline/internal/logger"
 	"github.com/kamkali/go-timeline/internal/server"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"gorm.io/gorm"
 	"log"
+	"strings"
 )
 
 type app struct {
@@ -106,7 +108,10 @@ func (a *app) start() {
 	a.log.Debug("successfully migrated database")
 	if a.config.SeedDB {
 		if err := a.seedDBWithAdmin(a.config); err != nil {
-			log.Fatalf("cannot seed DB with admin info")
+			// little hack for development purposes
+			if !strings.Contains(errors.Cause(err).Error(), "duplicate key value violates unique constraint \"idx_email\"") {
+				log.Fatalf("cannot seed DB with admin info")
+			}
 		}
 	}
 

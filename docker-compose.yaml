@@ -15,3 +15,13 @@ services:
     - POSTGRES_PASSWORD=postgres
     volumes:
     - ./internal/db/schema/init.sql:/docker-entrypoint-initdb.d/init.sql
+  go-timeline:
+    build: .
+    environment:
+      - DB_HOST=postgres
+      - DB_PASSWORD=postgres
+      - SERVER_HOST=0.0.0.0
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
