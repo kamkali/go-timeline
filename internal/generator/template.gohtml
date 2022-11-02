@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Timeline</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="canonical" href="https://technotarek.com/timeliner/timeliner.html" />
+    <link rel="stylesheet" href="static/css/demo.css" type="text/css" media="screen">
+    <link rel="stylesheet" href="static/css/timeliner.css" type="text/css" media="screen">
+    <link rel="stylesheet" href="static/css/responsive.css" type="text/css" media="screen">
+    <link rel="stylesheet" href="static/inc/colorbox.css" type="text/css" media="screen">
+</head>
+<body>
+    <div id="timeline" class="timeline-container">
+        {{ range .Events }}
+        <div class="timeline-wrapper">
+            <h2 class="timeline-time">{{ .EventTime.Year }}</h2>
+
+            <dl class="timeline-series">
+
+                <dt class="timeline-event" id="event{{.ID}}"><a>{{ .Name }}</a></dt>
+                <dd class="timeline-event-content" id="event{{.ID}}EX">
+                    <p>
+                        {{ .DetailedDescription }}
+                    </p>
+                </dd>
+
+            </dl>
+        </div>
+        {{ end }}
+        <br class="clear">
+    </div>
+    <!-- GLOBAL CORE SCRIPTS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script type="text/javascript" src="static/inc/colorbox.js"></script>
+    <script type="text/javascript" src="static/js/timeliner.js"></script>
+    <script>
+        $(document).ready(function() {
+            $.timeliner({});
+            $.timeliner({
+                timelineContainer: '#timeline-js',
+                timelineSectionMarker: '.milestone',
+                oneOpen: true,
+                startState: 'flat',
+                expandAllText: '+ Show All',
+                collapseAllText: '- Hide All'
+            });
+            // Colorbox Modal
+            $(".CBmodal").colorbox({inline:true, initialWidth:100, maxWidth:682, initialHeight:100, transition:"elastic",speed:750});
+        });
+    </script>
+</body>
+</html>
+
+{{/*<div id="timeline" class="timeline-container">*/}}
+{{/*    <div class="timeline-wrapper">*/}}
+{{/*        <h2 class="timeline-time">1976</h2>*/}}
+
+{{/*        <dl class="timeline-series">*/}}
+
+{{/*            <dt class="timeline-event" id="event01"><a>Event</a></dt>*/}}
+{{/*            <dd class="timeline-event-content" id="event01EX">*/}}
+{{/*                <p>Content about the event goes here.</p>*/}}
+{{/*            </dd>*/}}
+
+{{/*            <dt class="timeline-event" id="event02"><a>Another Event</a></dt>*/}}
+{{/*            <dd class="timeline-event-content" id="event02EX">*/}}
+{{/*                <p>Content about the other event.</p>*/}}
+{{/*            </dd>*/}}
+
+{{/*        </dl>*/}}
+{{/*    </div>*/}}
+{{/*    <div class="timeline-wrapper">*/}}
+{{/*        <h2 class="timeline-time">1984</h2>*/}}
+
+{{/*        <dl class="timeline-series">*/}}
+
+{{/*            <dt class="timeline-event" id="event03"><a>Yet Another Event</a></dt>*/}}
+{{/*            <dd class="timeline-event-content" id="event03EX">*/}}
+{{/*                <p>Content about the event goes here.</p>*/}}
+{{/*            </dd>*/}}
+
+{{/*        </dl>*/}}
+{{/*    </div>*/}}
+{{/*    <br class="clear">*/}}
+{{/*</div>*/}}

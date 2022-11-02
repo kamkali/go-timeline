@@ -7,6 +7,7 @@ import (
 	"github.com/kamkali/go-timeline/internal/auth"
 	"github.com/kamkali/go-timeline/internal/config"
 	"github.com/kamkali/go-timeline/internal/domain"
+	"github.com/kamkali/go-timeline/internal/generator"
 	"github.com/kamkali/go-timeline/internal/logger"
 	"github.com/kamkali/go-timeline/internal/server/schema"
 	"golang.org/x/net/context"
@@ -32,6 +33,7 @@ type Server struct {
 	typeService    domain.TypeService
 	processService domain.ProcessService
 	userService    domain.UserService
+	renderer       *generator.Renderer
 }
 
 func New(
@@ -42,9 +44,12 @@ func New(
 	typesService domain.TypeService,
 	processService domain.ProcessService,
 	userService domain.UserService,
-) *Server {
+) (*Server, error) {
 	r := mux.NewRouter()
-
+	siteRenderer, err := generator.NewRenderer()
+	if err != nil {
+		return nil, fmt.Errorf("cannot instantiate site renderer: %w", err)
+	}
 	s := &Server{
 		router: r,
 		config: cfg,
@@ -58,14 +63,20 @@ func New(
 		typeService:    typesService,
 		processService: processService,
 		userService:    userService,
+		renderer:       siteRenderer,
 	}
 
 	s.registerRoutes()
 
-	return s
+	return s, nil
 }
 
 func (s *Server) registerRoutes() {
+	{ // public routes
+		s.router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
+		s.router.HandleFunc("/", s.renderTimeline()).Methods("GET")
+	}
+
 	{ // Events routes
 		s.router.HandleFunc("/api/events",
 			s.withTimeout(s.config.Server.TimeoutSeconds, s.listEvents()),
@@ -196,4 +207,22 @@ func (s *Server) getIDFromRequest(r *http.Request) (uint, error) {
 	}
 
 	return uint(parseInt), nil
+}
+
+func (s *Server) renderTimeline() func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		events, err := s.eventService.ListEvents(ctx)
+		if err != nil {
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			return
+		}
+
+		site, err := s.renderer.RenderSite(events)
+		if err != nil {
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			return
+		}
+		w.Write(site)
+	}
 }

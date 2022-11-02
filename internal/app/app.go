@@ -93,12 +93,16 @@ func (a *app) initJWTManager() {
 }
 
 func (a *app) initHTTPServer() {
-	a.server = server.New(
+	s, err := server.New(
 		a.config,
 		a.log,
 		a.jwtManager,
 		a.eventService, a.typeService, a.processService, a.userService,
 	)
+	if err != nil {
+		log.Fatalf("cannot init server: %v\n", err)
+	}
+	a.server = s
 }
 
 func (a *app) start() {
