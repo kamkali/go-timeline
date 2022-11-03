@@ -8,10 +8,15 @@
     <link rel="stylesheet" href="static/css/demo.css" type="text/css" media="screen">
     <link rel="stylesheet" href="static/css/timeliner.css" type="text/css" media="screen">
     <link rel="stylesheet" href="static/css/responsive.css" type="text/css" media="screen">
+    <link rel="stylesheet" href="static/css/print.css" type="text/css" media="print" />
     <link rel="stylesheet" href="static/inc/colorbox.css" type="text/css" media="screen">
 </head>
 <body>
     <div id="timeline" class="timeline-container">
+        <button class="timeline-toggle">+ expand all</button>
+
+        <br class="clear">
+
         {{ range .Events }}
         <div class="timeline-wrapper">
             <h2 class="timeline-time">{{ .EventTime.Year }}</h2>
