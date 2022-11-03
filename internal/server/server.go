@@ -1,6 +1,7 @@
 package server
 
 import (
+	"embed"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -11,6 +12,7 @@ import (
 	"github.com/kamkali/go-timeline/internal/logger"
 	"github.com/kamkali/go-timeline/internal/server/schema"
 	"golang.org/x/net/context"
+	"io/fs"
 	"log"
 	"net"
 	"net/http"
@@ -21,10 +23,14 @@ import (
 	"time"
 )
 
+//go:embed static
+var staticFS embed.FS
+
 type Server struct {
-	router     *mux.Router
-	config     *config.Config
-	httpServer *http.Server
+	router       *mux.Router
+	config       *config.Config
+	httpServer   *http.Server
+	staticServer http.Handler
 
 	log        logger.Logger
 	jwtManager *auth.JWTManager
@@ -66,14 +72,21 @@ func New(
 		renderer:       siteRenderer,
 	}
 
+	fSys, err := fs.Sub(staticFS, "static")
+	if err != nil {
+		return nil, err
+	}
+	s.staticServer = http.FileServer(http.FS(fSys))
+
 	s.registerRoutes()
 
 	return s, nil
 }
 
 func (s *Server) registerRoutes() {
+
 	{ // public routes
-		s.router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
+		s.router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", s.staticServer))
 		s.router.HandleFunc("/", s.renderTimeline()).Methods("GET")
 	}
 
@@ -164,7 +177,7 @@ func (s *Server) Start() {
 			log.Fatalf("listen: %s\n", err)
 		}
 	}()
-	s.log.Info("Server Started")
+	s.log.Info(fmt.Sprintf("Server Started on host=%s:%s", s.config.Server.Host, s.config.Server.Port))
 
 	<-done
 	s.log.Info("Server Stopped")

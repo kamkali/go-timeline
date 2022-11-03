@@ -26,11 +26,12 @@ type Config struct {
 		User     string `envconfig:"DB_USER" default:"postgres"`
 		Password string `envconfig:"DB_PASSWORD" default:"postgres"`
 		Name     string `envconfig:"DB_NAME" default:"timeline"`
+		URI      string `envconfig:"DB_URI"`
 	}
 
 	Server struct {
-		Host           string `envconfig:"SERVER_HOST" default:"localhost"`
-		Port           string `envconfig:"SERVER_PORT" default:"8080"`
+		Host           string `envconfig:"SERVER_HOST"`
+		Port           string `envconfig:"PORT" default:"8080"`
 		TimeoutSeconds uint   `envconfig:"SERVER_TIMEOUT" default:"30"`
 	}
 

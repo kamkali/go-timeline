@@ -2,13 +2,16 @@ package generator
 
 import (
 	"bytes"
+	_ "embed"
 	"fmt"
 	"github.com/kamkali/go-timeline/internal/domain"
 	"github.com/kamkali/go-timeline/internal/logger"
 	"html/template"
-	"os"
 	"sort"
 )
+
+//go:embed template.gohtml
+var htmlContent string
 
 type Renderer struct {
 	log logger.Logger
@@ -25,12 +28,7 @@ func NewRenderer() (*Renderer, error) {
 }
 
 func (r *Renderer) loadTemplate() error {
-	tmplName := "./internal/generator/template.gohtml"
-	htmlContent, err := os.ReadFile(tmplName)
-	if err != nil {
-		return err
-	}
-	r.template = template.Must(template.New("").Parse(string(htmlContent)))
+	r.template = template.Must(template.New("").Parse(htmlContent))
 	return nil
 }
 

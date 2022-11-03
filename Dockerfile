@@ -19,6 +19,6 @@ COPY --from=build ./app/.env ./
 
 COPY --from=build ./app/app_build ./app
 
-EXPOSE 8080
+EXPOSE $PORT
 
 ENTRYPOINT ["./app"]
