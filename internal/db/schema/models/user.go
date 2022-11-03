@@ -12,16 +12,16 @@ type User struct {
 	Password string
 }
 
-func (u *User) BeforeSave(tx *gorm.DB) (err error) {
+func (u *User) BeforeSave(tx *gorm.DB) error {
 	if u.Password != "" {
 		hash, err := hashPassword(u.Password)
 		if err != nil {
-			return nil
+			return err
 		}
 		u.Password = hash
 	}
 
-	return
+	return nil
 }
 
 func hashPassword(password string) (string, error) {

@@ -8,7 +8,7 @@ import (
 	"github.com/kamkali/go-timeline/internal/auth"
 	"github.com/kamkali/go-timeline/internal/config"
 	"github.com/kamkali/go-timeline/internal/domain"
-	"github.com/kamkali/go-timeline/internal/generator"
+	"github.com/kamkali/go-timeline/internal/domain/generator"
 	"github.com/kamkali/go-timeline/internal/logger"
 	"github.com/kamkali/go-timeline/internal/server/schema"
 	"golang.org/x/net/context"

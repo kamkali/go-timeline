@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 	"github.com/kamkali/go-timeline/internal/config"
+	"github.com/kamkali/go-timeline/internal/db/schema/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -27,4 +28,13 @@ func NewDB(c *config.Config) (*gorm.DB, error) {
 	}
 
 	return db, nil
+}
+
+func Migrate(db *gorm.DB) error {
+	return db.AutoMigrate(
+		&models.Type{},
+		&models.Event{},
+		&models.Process{},
+		&models.User{},
+	)
 }

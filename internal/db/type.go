@@ -52,7 +52,7 @@ func (tr TypeRepository) UpdateType(ctx context.Context, id uint, dt *domain.Typ
 	t.Name = dt.Name
 	t.Color = dt.Color
 
-	if err := tr.db.Save(&t).Error; err != nil {
+	if err := tr.db.WithContext(ctx).Save(&t).Error; err != nil {
 		return fmt.Errorf("db error on update query: %w", r.Error)
 	}
 

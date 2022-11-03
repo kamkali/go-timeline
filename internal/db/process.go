@@ -62,7 +62,7 @@ func (t ProcessRepository) UpdateProcess(ctx context.Context, id uint, process *
 	e.Graphic = process.Graphic
 	e.TypeID = process.TypeID
 
-	if err := t.db.Save(&e).Error; err != nil {
+	if err := t.db.WithContext(ctx).Save(&e).Error; err != nil {
 		return fmt.Errorf("db error on update query: %w", r.Error)
 	}
 
