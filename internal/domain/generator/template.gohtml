@@ -20,11 +20,18 @@
         {{ range .Events }}
         <div class="timeline-wrapper">
             <h2 class="timeline-time">{{ .EventTime.Year }}</h2>
-
             <dl class="timeline-series">
 
                 <dt class="timeline-event" id="event{{.ID}}"><a>{{ .Name }}</a></dt>
                 <dd class="timeline-event-content" id="event{{.ID}}EX">
+                    <h3>{{ .ShortDescription }}</h3>
+
+                    {{if .Graphic }}
+                        <div class="media">
+                            <a class="CBmodal"><img id="event{{.ID}}" src="data:image/jpeg;base64,{{.Graphic}}" width="240" height="180"></a>
+                        </div><!-- /.media -->
+                    {{ end }}
+
                     <p>
                         {{ .DetailedDescription }}
                     </p>

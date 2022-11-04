@@ -11,7 +11,6 @@ import (
 	"github.com/kamkali/go-timeline/internal/domain/userservice"
 	"github.com/kamkali/go-timeline/internal/logger"
 	"github.com/kamkali/go-timeline/internal/server"
-	"golang.org/x/net/context"
 	"gorm.io/gorm"
 	"log"
 )
@@ -112,21 +111,12 @@ func (a *app) start() {
 		if err := a.seedDBWithAdmin(a.config); err != nil {
 			log.Fatalf("cannot seed DB with admin info")
 		}
+		if err := a.seedDBWithExampleValues(a.config); err != nil {
+			log.Fatalf("cannot seed DB with example values")
+		}
 	}
 
 	a.server.Start()
-}
-
-func (a *app) seedDBWithAdmin(c *config.Config) error {
-	u := domain.User{
-		Email:    c.AdminEmail,
-		Password: c.AdminPassword,
-	}
-	if err := a.userService.CreateUser(context.Background(), u); err != nil {
-		return err
-	}
-	a.log.Info("Seeded the DB with admin user")
-	return nil
 }
 
 func Run() {

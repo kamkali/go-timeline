@@ -3,11 +3,13 @@ package generator
 import (
 	"bytes"
 	_ "embed"
+	"encoding/base64"
 	"fmt"
 	"github.com/kamkali/go-timeline/internal/domain"
 	"github.com/kamkali/go-timeline/internal/logger"
 	"html/template"
 	"sort"
+	"time"
 )
 
 //go:embed template.gohtml
@@ -32,8 +34,18 @@ func (r *Renderer) loadTemplate() error {
 	return nil
 }
 
+type Event struct {
+	ID                  uint
+	Name                string
+	EventTime           time.Time
+	ShortDescription    string
+	DetailedDescription string
+	Graphic             string
+	TypeID              uint
+}
+
 type data struct {
-	Events []domain.Event
+	Events []Event
 }
 
 func (d *data) Sort() {
@@ -47,7 +59,19 @@ func (d *data) Less(i, j int) bool {
 }
 
 func (r *Renderer) RenderSite(events []domain.Event) ([]byte, error) {
-	d := data{Events: events}
+	var d data
+	for _, e := range events {
+		d.Events = append(d.Events, Event{
+			ID:                  e.ID,
+			Name:                e.Name,
+			EventTime:           e.EventTime,
+			ShortDescription:    e.ShortDescription,
+			DetailedDescription: e.DetailedDescription,
+			Graphic:             base64.StdEncoding.EncodeToString(e.Graphic),
+			TypeID:              e.TypeID,
+		})
+	}
+
 	d.Sort()
 
 	var buf bytes.Buffer

@@ -13,7 +13,7 @@ func NewDB(c *config.Config) (*gorm.DB, error) {
 	if c.DB.URI != "" {
 		dsn = c.DB.URI
 	} else {
-		dsn = fmt.Sprintf(`host=%s port=%s user=%s password=%s dbname=%s sslmode=require`,
+		dsn = fmt.Sprintf(`host=%s port=%s user=%s password=%s dbname=%s sslmode=disable`,
 			c.DB.Host,
 			c.DB.Port,
 			c.DB.User,
