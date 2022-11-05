@@ -31,13 +31,13 @@ type Config struct {
 
 	Server struct {
 		Host           string `envconfig:"SERVER_HOST"`
-		Port           string `envconfig:"PORT" default:"8080"`
+		Port           string `envconfig:"PORT" default:"8080" required:"true"`
 		TimeoutSeconds uint   `envconfig:"SERVER_TIMEOUT" default:"30"`
 	}
 
 	Auth struct {
-		SecretKey string `envconfig:"SECRET_KEY"`
-		PublicKey string `envconfig:"PUBLIC_KEY"`
+		SecretKey string `envconfig:"SECRET_KEY" required:"true"`
+		PublicKey string `envconfig:"PUBLIC_KEY" required:"true"`
 	}
 }
 
