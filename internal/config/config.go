@@ -26,7 +26,7 @@ type Config struct {
 		User     string `envconfig:"DB_USER" default:"postgres"`
 		Password string `envconfig:"DB_PASSWORD" default:"postgres"`
 		Name     string `envconfig:"DB_NAME" default:"timeline"`
-		URI      string `envconfig:"DB_URI"`
+		URI      string `envconfig:"DATABASE_URL"`
 	}
 
 	Server struct {
