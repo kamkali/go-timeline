@@ -4,6 +4,7 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/kamkali/go-timeline/internal/auth"
 	"github.com/kamkali/go-timeline/internal/config"
@@ -56,12 +57,18 @@ func New(
 	if err != nil {
 		return nil, fmt.Errorf("cannot instantiate site renderer: %w", err)
 	}
+	handler := handlers.CORS(
+		handlers.AllowedOrigins([]string{"http://localhost:3000"}),
+		handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "DELETE", "PUT"}),
+		handlers.AllowedHeaders([]string{"Origin", "Content-Type", "Authorization"}),
+		handlers.AllowCredentials(),
+	)(r)
 	s := &Server{
 		router: r,
 		config: cfg,
 		httpServer: &http.Server{
 			Addr:    net.JoinHostPort(cfg.Server.Host, cfg.Server.Port),
-			Handler: r,
+			Handler: handler,
 		},
 		log:            log,
 		jwtManager:     manager,
@@ -84,7 +91,6 @@ func New(
 }
 
 func (s *Server) registerRoutes() {
-
 	{ // public routes
 		s.router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", s.staticServer))
 		s.router.HandleFunc("/", s.renderTimeline()).Methods("GET")
@@ -165,6 +171,9 @@ func (s *Server) registerRoutes() {
 			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.changePassword())),
 		).Methods("POST")
 
+		s.router.HandleFunc("/api/check",
+			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.check())),
+		).Methods("GET")
 	}
 }
 
@@ -237,5 +246,11 @@ func (s *Server) renderTimeline() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 		w.Write(site)
+	}
+}
+
+func (s *Server) check() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
 	}
 }

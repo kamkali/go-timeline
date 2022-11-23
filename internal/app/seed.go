@@ -2,6 +2,7 @@ package app
 
 import (
 	_ "embed"
+	"encoding/base64"
 	"github.com/kamkali/go-timeline/internal/config"
 	"github.com/kamkali/go-timeline/internal/domain"
 	"golang.org/x/net/context"
@@ -67,7 +68,7 @@ func (a *app) seedDBWithExampleValues(c *config.Config) error {
 		EventTime:           time.Date(1915, 11, 1, 19, 20, 18, 0, time.UTC),
 		ShortDescription:    "Data powstania PW",
 		DetailedDescription: "Wybuch I wojny światowej przyniósł ze sobą możliwość realizacji postulatu nauczania we własnym języku. Po zajęciu Warszawy przez Niemców uzyskano zgodę na inaugurację działalności polskiej Politechniki, co nastąpiło w listopadzie 1915 roku. Studia prowadzone były na czterech wydziałach: Architektury, Budowy Maszyn i Elektrotechniki, Chemicznym oraz Inżynierii Budowlanej i Rolnej. Pierwszym rektorem został profesor Zygmunt Straszewicz.",
-		Graphic:             pwLogo,
+		Graphic:             "data:image/jpeg;base64," + base64.StdEncoding.EncodeToString(pwLogo),
 		TypeID:              t3.ID,
 	}
 

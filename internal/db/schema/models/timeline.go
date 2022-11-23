@@ -12,7 +12,7 @@ type Event struct {
 	EventTime           time.Time
 	ShortDescription    string
 	DetailedDescription string
-	Graphic             []byte
+	Graphic             string
 	TypeID              uint
 }
 

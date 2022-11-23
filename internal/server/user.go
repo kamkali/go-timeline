@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func (s Server) changePassword() http.HandlerFunc {
@@ -75,14 +76,30 @@ func (s Server) login() http.HandlerFunc {
 			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
 			return
 		}
+		claims, err := s.jwtManager.GetClaims(token)
+		if err != nil {
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			return
+		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Authorization", "Bearer "+token)
+		cookie := http.Cookie{
+			Name:    "Authorization",
+			Value:   "Bearer " + token,
+			Expires: time.Unix(int64(claims["exp"].(float64)), 0),
+		}
+		if err := cookie.Valid(); err != nil {
+			s.log.Error(err.Error())
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			return
+		}
+
 		w.WriteHeader(http.StatusOK)
 		tokenResponse, err := json.Marshal(schema.TokenResponse{Token: token})
 		if err != nil {
 			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
 			return
 		}
+		http.SetCookie(w, &cookie)
 		if _, err := w.Write(tokenResponse); err != nil {
 			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
 			return

@@ -28,7 +28,7 @@
 
                     {{if .Graphic }}
                         <div class="media">
-                            <a class="CBmodal"><img id="event{{.ID}}" src="data:image/jpeg;base64,{{.Graphic}}" width="240" height="180"></a>
+                            <a class="CBmodal"><img id="event{{.ID}}" src="{{ .Graphic }}" width="240" height="180"></a>
                         </div><!-- /.media -->
                     {{ end }}
 

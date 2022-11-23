@@ -3,7 +3,6 @@ package generator
 import (
 	"bytes"
 	_ "embed"
-	"encoding/base64"
 	"fmt"
 	"github.com/kamkali/go-timeline/internal/domain"
 	"github.com/kamkali/go-timeline/internal/logger"
@@ -40,7 +39,7 @@ type Event struct {
 	EventTime           time.Time
 	ShortDescription    string
 	DetailedDescription string
-	Graphic             string
+	Graphic             template.URL
 	TypeID              uint
 }
 
@@ -67,7 +66,7 @@ func (r *Renderer) RenderSite(events []domain.Event) ([]byte, error) {
 			EventTime:           e.EventTime,
 			ShortDescription:    e.ShortDescription,
 			DetailedDescription: e.DetailedDescription,
-			Graphic:             base64.StdEncoding.EncodeToString(e.Graphic),
+			Graphic:             template.URL(e.Graphic),
 			TypeID:              e.TypeID,
 		})
 	}

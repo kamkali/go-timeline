@@ -5,7 +5,7 @@ type Event struct {
 	EventTime           string `json:"event_time"`
 	ShortDescription    string `json:"short_description,omitempty"`
 	DetailedDescription string `json:"detailed_description,omitempty"`
-	Graphic             []byte `json:"graphic,omitempty"`
+	Graphic             string `json:"graphic,omitempty"`
 	TypeID              uint   `json:"type_id,omitempty"`
 }
 

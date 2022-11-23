@@ -57,6 +57,7 @@ func (t EventRepository) UpdateEvent(ctx context.Context, id uint, event *domain
 	e.ShortDescription = event.ShortDescription
 	e.DetailedDescription = event.DetailedDescription
 	e.Graphic = event.Graphic
+	e.TypeID = event.TypeID
 
 	if err := t.db.WithContext(ctx).Save(&e).Error; err != nil {
 		return fmt.Errorf("db error on update query: %w", r.Error)
