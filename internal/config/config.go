@@ -15,10 +15,13 @@ const (
 )
 
 type Config struct {
-	Stage         AppStage `envconfig:"STAGE" default:"DEV"`
-	SeedDB        bool     `envconfig:"SEED_DB" default:"false"`
-	AdminEmail    string   `envconfig:"ADMIN_EMAIL"`
-	AdminPassword string   `envconfig:"ADMIN_PASS"`
+	Stage  AppStage `envconfig:"STAGE" default:"DEV"`
+	SeedDB bool     `envconfig:"SEED_DB" default:"false"`
+
+	Admin struct {
+		Email    string `envconfig:"ADMIN_EMAIL"`
+		Password string `envconfig:"ADMIN_PASS"`
+	}
 
 	DB struct {
 		Host     string `envconfig:"DB_HOST" default:"localhost"`

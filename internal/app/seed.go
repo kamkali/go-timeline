@@ -14,8 +14,8 @@ var pwLogo []byte
 
 func (a *app) seedDBWithAdmin(c *config.Config) error {
 	u := domain.User{
-		Email:    c.AdminEmail,
-		Password: c.AdminPassword,
+		Email:    c.Admin.Email,
+		Password: c.Admin.Password,
 	}
 	if err := a.userService.CreateUser(context.Background(), u); err != nil {
 		return err

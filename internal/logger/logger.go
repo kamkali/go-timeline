@@ -11,6 +11,7 @@ var (
 	once   sync.Once
 )
 
+//go:generate mockery --name=Logger
 type Logger interface {
 	Debug(msg string)
 	Warn(msg string)

@@ -67,11 +67,3 @@ type ed25519PubKey struct {
 	}
 	PublicKey asn1.BitString
 }
-
-func (e *ed25519PrivateKey) getPrivateKey() ed25519.PrivateKey {
-	return ed25519.NewKeyFromSeed(e.PrivateKey[2:])
-}
-
-func (e *ed25519PubKey) getPubKey() ed25519.PublicKey {
-	return e.PublicKey.Bytes
-}
