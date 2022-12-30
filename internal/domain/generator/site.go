@@ -70,10 +70,11 @@ func (r *Renderer) RenderSite(events []domain.Event) ([]byte, error) {
 			TypeID:              e.TypeID,
 		})
 	}
-
 	d.Sort()
+
 	var buf bytes.Buffer
 	if err := r.template.Execute(&buf, d); err != nil {
+		r.log.Error("cannot execute template")
 		return nil, fmt.Errorf("execute tmpl: %w", err)
 	}
 	return buf.Bytes(), nil

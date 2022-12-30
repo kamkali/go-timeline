@@ -1,7 +1,6 @@
 package processservice
 
 import (
-	"fmt"
 	"github.com/kamkali/go-timeline/internal/domain"
 	"github.com/kamkali/go-timeline/internal/logger"
 	"golang.org/x/net/context"
@@ -14,24 +13,14 @@ type ProcessService struct {
 }
 
 func (t ProcessService) GetProcess(ctx context.Context, id uint) (domain.Process, error) {
-	if id < 0 {
-		return domain.Process{}, fmt.Errorf("invalid ID")
-	}
-
 	return t.repo.GetProcess(ctx, id)
 }
 
 func (t ProcessService) UpdateProcess(ctx context.Context, id uint, process *domain.Process) error {
-	if id < 0 {
-		return fmt.Errorf("invalid ID")
-	}
 	return t.repo.UpdateProcess(ctx, id, process)
 }
 
 func (t ProcessService) DeleteProcess(ctx context.Context, id uint) error {
-	if id < 0 {
-		return fmt.Errorf("invalid ID")
-	}
 	return t.repo.DeleteProcess(ctx, id)
 }
 

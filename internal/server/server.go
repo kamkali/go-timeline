@@ -245,7 +245,12 @@ func (s *Server) renderTimeline() func(http.ResponseWriter, *http.Request) {
 			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
 			return
 		}
-		w.Write(site)
+
+		_, err = w.Write(site)
+		if err != nil {
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			return
+		}
 	}
 }
 

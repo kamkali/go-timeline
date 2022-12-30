@@ -16,6 +16,7 @@ test:
 lint:
 	golangci-lint run ./...
 
+#### Deployment
 build_image:
 	docker build -t github.com/kamkali/go-timeline .
 #	docker tag go-timeline:latest github.com/kamkali/go-timeline && \
