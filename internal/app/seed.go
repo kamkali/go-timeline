@@ -23,8 +23,8 @@ func (a *app) seedDBWithAdmin(c *config.Config) error {
 	return nil
 }
 
-func (a *app) seedDBWithExampleValues(c *config.Config) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(c.Server.TimeoutSeconds)*time.Second)
+func (a *app) seedDBWithExampleValues() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	t1 := &domain.Type{
 		Name:  "normal",

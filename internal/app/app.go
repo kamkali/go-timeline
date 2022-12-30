@@ -111,7 +111,7 @@ func (a *app) start() {
 		if err := a.seedDBWithAdmin(a.config); err != nil {
 			log.Fatalf("cannot seed DB with admin info")
 		}
-		if err := a.seedDBWithExampleValues(a.config); err != nil {
+		if err := a.seedDBWithExampleValues(); err != nil {
 			log.Fatalf("cannot seed DB with example values")
 		}
 	}

@@ -5,9 +5,9 @@ import (
 )
 
 type User struct {
-	ID       uint   `json:"id,omitempty"`
-	Email    string `json:"email,omitempty"`
-	Password string `json:"-,omitempty"`
+	ID       uint
+	Email    string
+	Password string
 }
 
 type UserService interface {

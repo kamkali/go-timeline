@@ -28,3 +28,18 @@ func HTTPToDomainProcess(e *schema.Process) (*domain.Process, error) {
 
 	return domainProcess, nil
 }
+
+func HTTPFromDomainProcess(p *domain.Process) (*schema.Process, error) {
+	httpProcess := &schema.Process{
+		ID:                  p.ID,
+		Name:                p.Name,
+		StartTime:           p.StartTime.Format(time.RFC3339),
+		EndTime:             p.EndTime.Format(time.RFC3339),
+		ShortDescription:    p.ShortDescription,
+		DetailedDescription: p.DetailedDescription,
+		Graphic:             p.Graphic,
+		TypeID:              p.TypeID,
+	}
+
+	return httpProcess, nil
+}

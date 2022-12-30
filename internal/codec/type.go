@@ -13,3 +13,11 @@ func HTTPToDomainType(e *schema.Type) (*domain.Type, error) {
 
 	return domainType, nil
 }
+
+func HTTPFromDomainType(t *domain.Type) (*schema.Type, error) {
+	return &schema.Type{
+		ID:    t.ID,
+		Name:  t.Name,
+		Color: t.Color,
+	}, nil
+}

@@ -33,7 +33,13 @@ func (s *Server) getType() http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		typeResponse, err := json.Marshal(schema.TypeResponse{Type: dt})
+
+		httpType, err := codec.HTTPFromDomainType(&dt)
+		if err != nil {
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			return
+		}
+		typeResponse, err := json.Marshal(schema.TypeResponse{Type: httpType})
 		if err != nil {
 			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
 			return
@@ -111,7 +117,16 @@ func (s *Server) listTypes() http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		typesResponse, err := json.Marshal(schema.TypesResponse{Types: types})
+		var httpTypes []*schema.Type
+		for i := range types {
+			httpType, err := codec.HTTPFromDomainType(&types[i])
+			if err != nil {
+				s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+				return
+			}
+			httpTypes = append(httpTypes, httpType)
+		}
+		typesResponse, err := json.Marshal(schema.TypesResponse{Types: httpTypes})
 		if err != nil {
 			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
 			return

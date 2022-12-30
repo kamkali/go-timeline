@@ -23,3 +23,17 @@ func HTTPToDomainEvent(e *schema.Event) (*domain.Event, error) {
 
 	return domainEvent, nil
 }
+
+func HTTPFromDomainEvent(e *domain.Event) (*schema.Event, error) {
+	httpEvent := &schema.Event{
+		ID:                  e.ID,
+		Name:                e.Name,
+		EventTime:           e.EventTime.Format(time.RFC3339),
+		ShortDescription:    e.ShortDescription,
+		DetailedDescription: e.DetailedDescription,
+		Graphic:             e.Graphic,
+		TypeID:              e.TypeID,
+	}
+
+	return httpEvent, nil
+}

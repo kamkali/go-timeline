@@ -1,9 +1,5 @@
 package schema
 
-import (
-	"github.com/kamkali/go-timeline/internal/domain"
-)
-
 const (
 	ErrInternal     = "Internal server error"
 	ErrBadRequest   = "Bad request"
@@ -21,19 +17,19 @@ type EventCreatedResponse struct {
 }
 
 type EventResponse struct {
-	Event domain.Event `json:"event"`
+	Event *Event `json:"event"`
 }
 
 type EventsResponse struct {
-	Events []domain.Event `json:"events"`
+	Events []*Event `json:"events"`
 }
 
 type TypeResponse struct {
-	Type domain.Type `json:"type"`
+	Type *Type `json:"type"`
 }
 
 type TypesResponse struct {
-	Types []domain.Type `json:"types"`
+	Types []*Type `json:"types"`
 }
 
 type TypeCreatedResponse struct {
@@ -45,11 +41,11 @@ type ProcessCreatedResponse struct {
 }
 
 type ProcessResponse struct {
-	Process domain.Process `json:"process"`
+	Process *Process `json:"process"`
 }
 
 type ProcessesResponse struct {
-	Processes []domain.Process `json:"processes"`
+	Processes []*Process `json:"processes"`
 }
 
 type TokenResponse struct {

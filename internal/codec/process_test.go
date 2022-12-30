@@ -4,6 +4,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/kamkali/go-timeline/internal/domain"
 	"github.com/kamkali/go-timeline/internal/server/schema"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -78,5 +79,37 @@ func TestHTTPToDomainProcess(t *testing.T) {
 				t.Fail()
 			}
 		})
+	}
+}
+
+func TestHTTPFromDomainProcess(t *testing.T) {
+	p1 := &domain.Process{
+		ID:                  1,
+		Name:                "Test Process",
+		StartTime:           time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+		EndTime:             time.Date(2020, 1, 1, 12, 0, 0, 0, time.UTC),
+		ShortDescription:    "Test process",
+		DetailedDescription: "Test process description",
+		Graphic:             "test.jpg",
+		TypeID:              1,
+	}
+
+	httpProcess, err := HTTPFromDomainProcess(p1)
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+
+	expected := &schema.Process{
+		ID:                  1,
+		Name:                "Test Process",
+		StartTime:           "2020-01-01T00:00:00Z",
+		EndTime:             "2020-01-01T12:00:00Z",
+		ShortDescription:    "Test process",
+		DetailedDescription: "Test process description",
+		Graphic:             "test.jpg",
+		TypeID:              1,
+	}
+	if !reflect.DeepEqual(httpProcess, expected) {
+		t.Errorf("Expected %+v, got %+v", expected, httpProcess)
 	}
 }

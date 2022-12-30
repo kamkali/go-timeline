@@ -5,35 +5,33 @@ import (
 	"time"
 )
 
-// TODO: Get rid of JSON annotations
-
 type Event struct {
-	ID                  uint      `json:"id,omitempty"`
-	Name                string    `json:"name,omitempty"`
-	EventTime           time.Time `json:"event_time"`
-	ShortDescription    string    `json:"short_description,omitempty"`
-	DetailedDescription string    `json:"detailed_description,omitempty"`
-	Graphic             string    `json:"graphic,omitempty"`
-	TypeID              uint      `json:"type_id,omitempty"`
+	ID                  uint
+	Name                string
+	EventTime           time.Time
+	ShortDescription    string
+	DetailedDescription string
+	Graphic             string
+	TypeID              uint
 }
 
 type Process struct {
-	ID                  uint      `json:"id,omitempty"`
-	Name                string    `json:"name,omitempty"`
-	StartTime           time.Time `json:"start_time"`
-	EndTime             time.Time `json:"end_time"`
-	ShortDescription    string    `json:"short_description,omitempty"`
-	DetailedDescription string    `json:"detailed_description,omitempty"`
-	Graphic             string    `json:"graphic,omitempty"`
-	TypeID              uint      `json:"type_id,omitempty"`
+	ID                  uint
+	Name                string
+	StartTime           time.Time
+	EndTime             time.Time
+	ShortDescription    string
+	DetailedDescription string
+	Graphic             string
+	TypeID              uint
 }
 
 type Type struct {
-	ID      uint      `json:"id,omitempty"`
-	Name    string    `json:"name,omitempty"`
-	Color   string    `json:"color,omitempty"`
-	Events  []Event   `json:"-"`
-	Process []Process `json:"-"`
+	ID      uint
+	Name    string
+	Color   string
+	Events  []Event
+	Process []Process
 }
 
 type EventService interface {

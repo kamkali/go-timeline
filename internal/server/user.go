@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func (s Server) changePassword() http.HandlerFunc {
+func (s *Server) changePassword() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		tokenString := r.Header.Get("Authorization")
@@ -53,7 +53,7 @@ func (s Server) changePassword() http.HandlerFunc {
 	}
 }
 
-func (s Server) login() http.HandlerFunc {
+func (s *Server) login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		user, err := s.getUserPayload(r)

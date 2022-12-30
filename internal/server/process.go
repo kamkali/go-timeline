@@ -33,7 +33,13 @@ func (s *Server) getProcess() http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		processResponse, err := json.Marshal(schema.ProcessResponse{Process: process})
+
+		httpProcess, err := codec.HTTPFromDomainProcess(&process)
+		if err != nil {
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			return
+		}
+		processResponse, err := json.Marshal(schema.ProcessResponse{Process: httpProcess})
 		if err != nil {
 			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
 			return
@@ -107,7 +113,17 @@ func (s *Server) listProcesses() http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		processesResponse, err := json.Marshal(schema.ProcessesResponse{Processes: processes})
+
+		var httpProcesses []*schema.Process
+		for i := range processes {
+			process, err := codec.HTTPFromDomainProcess(&processes[i])
+			if err != nil {
+				s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+				return
+			}
+			httpProcesses = append(httpProcesses, process)
+		}
+		processesResponse, err := json.Marshal(schema.ProcessesResponse{Processes: httpProcesses})
 		if err != nil {
 			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
 			return

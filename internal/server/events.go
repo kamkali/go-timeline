@@ -33,7 +33,12 @@ func (s *Server) getEvent() http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		eventResponse, err := json.Marshal(schema.EventResponse{Event: event})
+		httpEvent, err := codec.HTTPFromDomainEvent(&event)
+		if err != nil {
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			return
+		}
+		eventResponse, err := json.Marshal(schema.EventResponse{Event: httpEvent})
 		if err != nil {
 			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
 			return
@@ -107,7 +112,18 @@ func (s *Server) listEvents() http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		eventsResponse, err := json.Marshal(schema.EventsResponse{Events: events})
+
+		var httpEvents []*schema.Event
+		for i := range events {
+			httpEvent, err := codec.HTTPFromDomainEvent(&events[i])
+			if err != nil {
+				s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+				return
+			}
+			httpEvents = append(httpEvents, httpEvent)
+		}
+
+		eventsResponse, err := json.Marshal(schema.EventsResponse{Events: httpEvents})
 		if err != nil {
 			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
 			return

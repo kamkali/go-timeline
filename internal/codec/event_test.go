@@ -4,6 +4,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/kamkali/go-timeline/internal/domain"
 	"github.com/kamkali/go-timeline/internal/server/schema"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -61,5 +62,38 @@ func TestHTTPToDomainEvent(t *testing.T) {
 				t.Fail()
 			}
 		})
+	}
+}
+
+func TestHTTPFromDomainEvent(t *testing.T) {
+	// Set up test data
+	e1 := &domain.Event{
+		ID:                  1,
+		Name:                "Test Event",
+		EventTime:           time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+		ShortDescription:    "Test event",
+		DetailedDescription: "Test event description",
+		Graphic:             "test.jpg",
+		TypeID:              1,
+	}
+
+	// Test HTTPFromDomainEvent function
+	httpEvent, err := HTTPFromDomainEvent(e1)
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+
+	// Check that the returned HTTP event is correct
+	expected := &schema.Event{
+		ID:                  1,
+		Name:                "Test Event",
+		EventTime:           "2020-01-01T00:00:00Z",
+		ShortDescription:    "Test event",
+		DetailedDescription: "Test event description",
+		Graphic:             "test.jpg",
+		TypeID:              1,
+	}
+	if !reflect.DeepEqual(httpEvent, expected) {
+		t.Errorf("Expected %+v, got %+v", expected, httpEvent)
 	}
 }
