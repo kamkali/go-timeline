@@ -72,7 +72,6 @@ func (r *Renderer) RenderSite(events []domain.Event) ([]byte, error) {
 	}
 
 	d.Sort()
-
 	var buf bytes.Buffer
 	if err := r.template.Execute(&buf, d); err != nil {
 		return nil, fmt.Errorf("execute tmpl: %w", err)

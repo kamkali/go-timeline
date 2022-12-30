@@ -9,6 +9,10 @@ install-mockery:
 generate:
 	go generate ./...
 
+test:
+	go test -short -race ./...
+
+
 lint:
 	golangci-lint run ./...
 

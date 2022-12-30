@@ -85,7 +85,7 @@ func (t ProcessRepository) CreateProcess(ctx context.Context, process *domain.Pr
 	typ := models.Type{}
 	result := t.db.Table("types").Find(&typ, process.TypeID)
 	if result.Error != nil || result.RowsAffected == 0 {
-		return 0, fmt.Errorf("cannot find type of name %s", process.TypeID)
+		return 0, fmt.Errorf("cannot find type of id %d", process.TypeID)
 	}
 	dbProcess.TypeID = typ.ID
 

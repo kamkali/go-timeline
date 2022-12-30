@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+// TODO: Get rid of JSON annotations
+
 type Event struct {
 	ID                  uint      `json:"id,omitempty"`
 	Name                string    `json:"name,omitempty"`
@@ -93,3 +95,7 @@ type ProcessRepository interface {
 }
 
 //go:generate mockery --name=ProcessRepository
+
+type Renderer interface {
+	RenderSite(events []Event) ([]byte, error)
+}

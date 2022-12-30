@@ -24,7 +24,7 @@ type Process struct {
 	EndTime             time.Time
 	ShortDescription    string
 	DetailedDescription string
-	Graphic             []byte
+	Graphic             string
 	TypeID              uint
 }
 
