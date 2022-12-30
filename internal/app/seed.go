@@ -2,15 +2,14 @@ package app
 
 import (
 	_ "embed"
-	"encoding/base64"
 	"github.com/kamkali/go-timeline/internal/config"
 	"github.com/kamkali/go-timeline/internal/domain"
 	"golang.org/x/net/context"
 	"time"
 )
 
-//go:embed logoPW.jpeg
-var pwLogo []byte
+//go:embed apollo11.jpeg
+var apollo11Graphic []byte
 
 func (a *app) seedDBWithAdmin(c *config.Config) error {
 	u := domain.User{
@@ -48,27 +47,27 @@ func (a *app) seedDBWithExampleValues(c *config.Config) error {
 	}
 
 	e1 := &domain.Event{
-		Name:                "Zamknięcie Szkoły Przygotowawczej",
-		EventTime:           time.Date(1831, 1, 1, 0, 0, 0, 0, time.UTC),
-		ShortDescription:    "W roku 1831 została zamknięta Szkoła Przygotowawcza",
-		DetailedDescription: "Za datę powstania szkolnictwa technicznego w Warszawie przyjmuje się rok 1826, w którym została otwarta Szkoła Przygotowawcza do studiów technicznych. Inicjatorem powstania szkoły i autorem programu nauczania był działający w Komisji Wyznań Religijnych i Oświecenia Publicznego Stanisław Staszic - wszechstronny uczony i działacz oświaty.",
+		Name:                "Launch of Sputnik 1",
+		EventTime:           time.Date(1957, 10, 4, 0, 0, 0, 0, time.UTC),
+		ShortDescription:    "The Soviet Union launches the first artificial satellite",
+		DetailedDescription: "Sputnik 1 was a Soviet artificial satellite that was launched into orbit on October 4, 1957. It was the first satellite to be launched into space, and its successful launch marked the beginning of the Space Age. The satellite was about the size of a beach ball and weighed just under 200 pounds. It was equipped with two radio transmitters, which sent out a series of beeps that could be heard by amateur radio operators around the world. The launch of Sputnik 1 sparked the Space Race between the Soviet Union and the United States, which ultimately led to the first human landing on the Moon in 1969.",
 		TypeID:              t1.ID,
 	}
 
 	e2 := &domain.Event{
-		Name:                "Powstanie szkolnictwa technicznego",
-		EventTime:           time.Date(1836, 1, 1, 0, 0, 0, 0, time.UTC),
-		ShortDescription:    "W roku 1826 została otwarta Szkoła Przygotowawcza",
-		DetailedDescription: "Po kilku zaledwie latach działania, szkoła ta została zamknięta w roku 1831, w ramach represji po wybuchu Powstania Listopadowego.",
+		Name:                "First human spaceflight",
+		EventTime:           time.Date(1961, 4, 12, 9, 07, 0, 0, time.UTC),
+		ShortDescription:    "Yuri Gagarin becomes the first human to orbit Earth",
+		DetailedDescription: "Yuri Gagarin was a Soviet pilot and cosmonaut who became the first human to orbit Earth on April 12, 1961. Gagarin's spacecraft, Vostok 1, circled the Earth once in just under an hour and a half, reaching an altitude of about 186 miles. Gagarin's flight marked a major milestone in the Space Race between the Soviet Union and the United States, and he became an international celebrity after his return to Earth. Gagarin died in a plane crash in 1968 at the age of 34.",
 		TypeID:              t2.ID,
 	}
 
 	e3 := &domain.Event{
-		Name:                "Powstanie Politechniki Warszawskiej",
-		EventTime:           time.Date(1915, 11, 1, 19, 20, 18, 0, time.UTC),
-		ShortDescription:    "Data powstania PW",
-		DetailedDescription: "Wybuch I wojny światowej przyniósł ze sobą możliwość realizacji postulatu nauczania we własnym języku. Po zajęciu Warszawy przez Niemców uzyskano zgodę na inaugurację działalności polskiej Politechniki, co nastąpiło w listopadzie 1915 roku. Studia prowadzone były na czterech wydziałach: Architektury, Budowy Maszyn i Elektrotechniki, Chemicznym oraz Inżynierii Budowlanej i Rolnej. Pierwszym rektorem został profesor Zygmunt Straszewicz.",
-		Graphic:             "data:image/jpeg;base64," + base64.StdEncoding.EncodeToString(pwLogo),
+		Name:                "Apollo 11 Moon landing",
+		EventTime:           time.Date(1969, 7, 20, 20, 18, 0, 0, time.UTC),
+		ShortDescription:    "Neil Armstrong becomes the first human to set foot on the Moon",
+		DetailedDescription: `The Apollo 11 mission was the first manned mission to land on the Moon. It was launched on July 16, 1969, and four days later, on July 20, astronauts Neil Armstrong and Edwin "Buzz" Aldrin landed the lunar module Eagle on the surface of the Moon. Armstrong became the first human to set foot on the Moon when he stepped out of the lunar module and onto the surface, saying the famous words, "That's one small step for man, one giant leap for mankind." The Apollo 11 mission marked the end of the Space Race between the United States and the Soviet Union, and it remains one of the most significant achievements in the history of space exploration.`,
+		Graphic:             string(apollo11Graphic),
 		TypeID:              t3.ID,
 	}
 
