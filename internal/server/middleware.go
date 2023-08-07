@@ -26,7 +26,7 @@ func (s *Server) withAuth(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 		tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
-		token, err := s.jwtManager.VerifyToken(tokenString)
+		token, err := s.jwtManager.GetValidToken(tokenString)
 		if err != nil {
 			s.writeErrResponse(w, fmt.Errorf("token veryfication: %w", err), http.StatusUnauthorized, schema.ErrUnauthorized)
 			return

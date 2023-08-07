@@ -20,17 +20,14 @@ func (m *SigningMethodEd25519) Alg() string {
 	return "EdDSA"
 }
 
-func (m *SigningMethodEd25519) Verify(signingString string, signature string, key interface{}) error {
-	var err error
-
-	var sig []byte
-	if sig, err = jwt.DecodeSegment(signature); err != nil {
+func (m *SigningMethodEd25519) Verify(signingString string, signature string, key any) error {
+	sig, err := jwt.DecodeSegment(signature)
+	if err != nil {
 		return err
 	}
 
-	var ed25519Key ed25519.PublicKey
-	var ok bool
-	if ed25519Key, ok = key.(ed25519.PublicKey); !ok {
+	ed25519Key, ok := key.(ed25519.PublicKey)
+	if !ok {
 		return jwt.ErrInvalidKeyType
 	}
 
@@ -45,10 +42,9 @@ func (m *SigningMethodEd25519) Verify(signingString string, signature string, ke
 	return nil
 }
 
-func (m *SigningMethodEd25519) Sign(signingString string, key interface{}) (str string, err error) {
-	var ed25519Key ed25519.PrivateKey
-	var ok bool
-	if ed25519Key, ok = key.(ed25519.PrivateKey); !ok {
+func (m *SigningMethodEd25519) Sign(signingString string, key any) (str string, err error) {
+	ed25519Key, ok := key.(ed25519.PrivateKey)
+	if !ok {
 		return "", jwt.ErrInvalidKeyType
 	}
 
@@ -66,12 +62,4 @@ type ed25519PubKey struct {
 		ObjectIdentifier asn1.ObjectIdentifier
 	}
 	PublicKey asn1.BitString
-}
-
-func (e *ed25519PrivateKey) getPrivateKey() ed25519.PrivateKey {
-	return ed25519.NewKeyFromSeed(e.PrivateKey[2:])
-}
-
-func (e *ed25519PubKey) getPubKey() ed25519.PublicKey {
-	return e.PublicKey.Bytes
 }

@@ -1,9 +1,9 @@
 package config
 
 import (
+	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
-	"log"
 )
 
 type AppStage string
@@ -15,10 +15,13 @@ const (
 )
 
 type Config struct {
-	Stage         AppStage `envconfig:"STAGE" default:"DEV"`
-	SeedDB        bool     `envconfig:"SEED_DB" default:"false"`
-	AdminEmail    string   `envconfig:"ADMIN_EMAIL"`
-	AdminPassword string   `envconfig:"ADMIN_PASS"`
+	Stage  AppStage `envconfig:"STAGE" default:"DEV"`
+	SeedDB bool     `envconfig:"SEED_DB" default:"false"`
+
+	Admin struct {
+		Email    string `envconfig:"ADMIN_EMAIL"`
+		Password string `envconfig:"ADMIN_PASS"`
+	}
 
 	DB struct {
 		Host     string `envconfig:"DB_HOST" default:"localhost"`
@@ -44,10 +47,10 @@ type Config struct {
 func LoadConfig() (*Config, error) {
 	var c Config
 	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
+		return nil, fmt.Errorf("error loading .env file: %w", err)
 	}
 	if err := envconfig.Process("timeline", &c); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot process env to config: %w", err)
 	}
 	return &c, nil
 }
