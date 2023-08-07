@@ -15,19 +15,4 @@ test:
 lint:
 	golangci-lint run ./...
 
-#### Deployment
-build_image:
-	docker build -t github.com/kamkali/AiTSI_projekt .
-#	docker tag go-timeline:latest github.com/kamkali/AiTSI_projekt && \
-
-push_image:
-	heroku container:login && \
- 	heroku container:push -a timeline-backend web
-
-deploy:
-	heroku container:release -a timeline-backend web
-
-logs:
-	heroku logs -a timeline-backend --tail
-
-.PHONY: compose tools generate lint build_image push_image deploy logs
+.PHONY: compose tools generate lint

@@ -30,7 +30,7 @@ func (a *app) seedDBWithAdmin(c *config.Config) error {
 }
 
 func (a *app) seedDBWithExampleValues() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
 	defer cancel()
 	t1 := &timeline2.Type{
 		Name:  "normal",

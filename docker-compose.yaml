@@ -17,7 +17,7 @@ services:
     volumes:
     - ./internal/db/schema/init.sql:/docker-entrypoint-initdb.d/init.sql
   go-timeline:
-    build: ..
+    build: .
     environment:
       - DB_HOST=postgres
       - DB_PASSWORD=postgres

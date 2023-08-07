@@ -1,0 +1,5 @@
+.idea
+.env
+private.pem
+key.pub
+*.DS_Store

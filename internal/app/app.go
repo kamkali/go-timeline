@@ -115,7 +115,7 @@ func (a *app) start() {
 	if err := postgresql2.Migrate(a.database); err != nil {
 		log.Fatalf("couldn't migrate db: %v\n", err)
 	}
-	a.log.Debug("successfully migrated database")
+	a.log.Info("successfully migrated database")
 	if a.config.SeedDB {
 		if err := a.seedDBWithAdmin(a.config); err != nil {
 			log.Fatalf("cannot seed DB with admin info")

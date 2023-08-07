@@ -1,16 +1,19 @@
 package server
 
 import (
+	"embed"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/kamkali/go-timeline/internal/auth"
 	"github.com/kamkali/go-timeline/internal/config"
+	"github.com/kamkali/go-timeline/internal/generator"
 	"github.com/kamkali/go-timeline/internal/server/schema"
-	timeline2 "github.com/kamkali/go-timeline/internal/timeline"
+	"github.com/kamkali/go-timeline/internal/timeline"
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
+	"io/fs"
 	"log"
 	"net"
 	"net/http"
@@ -21,28 +24,37 @@ import (
 	"time"
 )
 
+//go:embed static
+var staticFS embed.FS
+
 type Server struct {
-	router     *mux.Router
-	config     *config.Config
-	httpServer *http.Server
+	router       *mux.Router
+	config       *config.Config
+	httpServer   *http.Server
+	staticServer http.Handler
 
 	log        *zap.Logger
 	jwtManager *auth.JWTManager
 
-	eventService timeline2.EventService
-	typeService  timeline2.TypeService
-	userService  timeline2.UserService
+	eventService timeline.EventService
+	typeService  timeline.TypeService
+	userService  timeline.UserService
+	renderer     *generator.Renderer
 }
 
 func New(
 	cfg *config.Config,
 	log *zap.Logger,
 	manager *auth.JWTManager,
-	eventService timeline2.EventService,
-	typesService timeline2.TypeService,
-	userService timeline2.UserService,
+	eventService timeline.EventService,
+	typesService timeline.TypeService,
+	userService timeline.UserService,
 ) (*Server, error) {
 	r := mux.NewRouter()
+	siteRenderer, err := generator.NewRenderer()
+	if err != nil {
+		return nil, fmt.Errorf("cannot instantiate site renderer: %w", err)
+	}
 	handler := handlers.CORS(
 		handlers.AllowedOrigins([]string{"http://localhost:3000", "https://apollo11timeline.herokuapp.com"}),
 		handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "DELETE", "PUT", "OPTIONS"}),
@@ -61,7 +73,14 @@ func New(
 		eventService: eventService,
 		typeService:  typesService,
 		userService:  userService,
+		renderer:     siteRenderer,
 	}
+
+	fSys, err := fs.Sub(staticFS, "static")
+	if err != nil {
+		return nil, err
+	}
+	s.staticServer = http.FileServer(http.FS(fSys))
 
 	s.registerRoutes()
 
@@ -69,6 +88,11 @@ func New(
 }
 
 func (s *Server) registerRoutes() {
+	{ // public routes
+		s.router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", s.staticServer))
+		s.router.HandleFunc("/", s.renderTimeline()).Methods("GET")
+	}
+
 	{ // Events routes
 		s.router.HandleFunc("/api/events",
 			s.withTimeout(s.config.Server.TimeoutSeconds, s.listEvents()),
