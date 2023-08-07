@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/kamkali/go-timeline/internal/codec"
-	"github.com/kamkali/go-timeline/internal/domain"
-	"github.com/kamkali/go-timeline/internal/server/schema"
+	schema2 "github.com/kamkali/go-timeline/internal/server/schema"
+	timeline2 "github.com/kamkali/go-timeline/internal/timeline"
 	"golang.org/x/net/context"
 	"io"
 	"net/http"
@@ -17,25 +17,31 @@ func (s *Server) getType() http.HandlerFunc {
 		ctx := r.Context()
 		id, err := s.getIDFromRequest(r)
 		if err != nil {
-			s.writeErrResponse(w, err, http.StatusBadRequest, schema.ErrBadRequest)
+			s.writeErrResponse(w, err, http.StatusBadRequest, schema2.ErrBadRequest)
 			return
 		}
 
 		dt, err := s.typeService.GetType(ctx, id)
 		if err != nil {
-			if errors.Is(err, domain.ErrNotFound) {
-				s.writeErrResponse(w, err, http.StatusNotFound, schema.ErrNotFound)
+			if errors.Is(err, timeline2.ErrNotFound) {
+				s.writeErrResponse(w, err, http.StatusNotFound, schema2.ErrNotFound)
 				return
 			}
-			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema2.ErrInternal)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		typeResponse, err := json.Marshal(schema.TypeResponse{Type: dt})
+
+		httpType, err := codec.HTTPFromDomainType(&dt)
 		if err != nil {
-			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema2.ErrInternal)
+			return
+		}
+		typeResponse, err := json.Marshal(schema2.TypeResponse{Type: httpType})
+		if err != nil {
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema2.ErrInternal)
 			return
 		}
 		if _, err := w.Write(typeResponse); err != nil {
@@ -51,22 +57,22 @@ func (s *Server) updateType() http.HandlerFunc {
 
 		domainType, err := s.getTypePayload(r)
 		if err != nil {
-			s.writeErrResponse(w, err, http.StatusBadRequest, schema.ErrBadRequest)
+			s.writeErrResponse(w, err, http.StatusBadRequest, schema2.ErrBadRequest)
 			return
 		}
 
 		id, err := s.getIDFromRequest(r)
 		if err != nil {
-			s.writeErrResponse(w, err, http.StatusBadRequest, schema.ErrBadRequest)
+			s.writeErrResponse(w, err, http.StatusBadRequest, schema2.ErrBadRequest)
 			return
 		}
 
 		if err := s.typeService.UpdateType(ctx, id, domainType); err != nil {
 			if errors.Is(err, context.DeadlineExceeded) {
-				s.writeErrResponse(w, err, http.StatusRequestTimeout, schema.ErrTimedOut)
+				s.writeErrResponse(w, err, http.StatusRequestTimeout, schema2.ErrTimedOut)
 				return
 			}
-			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema2.ErrInternal)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -78,16 +84,16 @@ func (s *Server) deleteType() http.HandlerFunc {
 		ctx := r.Context()
 		id, err := s.getIDFromRequest(r)
 		if err != nil {
-			s.writeErrResponse(w, err, http.StatusBadRequest, schema.ErrBadRequest)
+			s.writeErrResponse(w, err, http.StatusBadRequest, schema2.ErrBadRequest)
 			return
 		}
 
 		if err := s.typeService.DeleteType(ctx, id); err != nil {
 			if errors.Is(err, context.DeadlineExceeded) {
-				s.writeErrResponse(w, err, http.StatusRequestTimeout, schema.ErrTimedOut)
+				s.writeErrResponse(w, err, http.StatusRequestTimeout, schema2.ErrTimedOut)
 				return
 			}
-			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema2.ErrInternal)
 			return
 		}
 
@@ -102,18 +108,27 @@ func (s *Server) listTypes() http.HandlerFunc {
 		types, err := s.typeService.ListTypes(ctx)
 		if err != nil {
 			if errors.Is(err, context.DeadlineExceeded) {
-				s.writeErrResponse(w, err, http.StatusRequestTimeout, schema.ErrTimedOut)
+				s.writeErrResponse(w, err, http.StatusRequestTimeout, schema2.ErrTimedOut)
 				return
 			}
-			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema2.ErrInternal)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		typesResponse, err := json.Marshal(schema.TypesResponse{Types: types})
+		var httpTypes []*schema2.Type
+		for i := range types {
+			httpType, err := codec.HTTPFromDomainType(&types[i])
+			if err != nil {
+				s.writeErrResponse(w, err, http.StatusInternalServerError, schema2.ErrInternal)
+				return
+			}
+			httpTypes = append(httpTypes, httpType)
+		}
+		typesResponse, err := json.Marshal(schema2.TypesResponse{Types: httpTypes})
 		if err != nil {
-			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema2.ErrInternal)
 			return
 		}
 		if _, err := w.Write(typesResponse); err != nil {
@@ -129,41 +144,41 @@ func (s *Server) createType() http.HandlerFunc {
 
 		domainType, err := s.getTypePayload(r)
 		if err != nil {
-			s.writeErrResponse(w, err, http.StatusBadRequest, schema.ErrBadRequest)
+			s.writeErrResponse(w, err, http.StatusBadRequest, schema2.ErrBadRequest)
 			return
 		}
 
 		created, err := s.typeService.CreateType(ctx, domainType)
 		if err != nil {
 			if errors.Is(err, context.DeadlineExceeded) {
-				s.writeErrResponse(w, err, http.StatusRequestTimeout, schema.ErrTimedOut)
+				s.writeErrResponse(w, err, http.StatusRequestTimeout, schema2.ErrTimedOut)
 				return
 			}
-			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema2.ErrInternal)
 			return
 		}
 
-		er := schema.TypeCreatedResponse{TypeID: created}
+		er := schema2.TypeCreatedResponse{TypeID: created}
 		resp, err := json.Marshal(er)
 		if err != nil {
-			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema2.ErrInternal)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		if _, err := w.Write(resp); err != nil {
-			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema2.ErrInternal)
 			return
 		}
 	}
 }
 
-func (s *Server) getTypePayload(r *http.Request) (*domain.Type, error) {
+func (s *Server) getTypePayload(r *http.Request) (*timeline2.Type, error) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, fmt.Errorf("cannot read body")
 	}
-	var dt schema.Type
+	var dt schema2.Type
 	if err := json.Unmarshal(body, &dt); err != nil {
 		return nil, fmt.Errorf("cannot unmarshal body")
 	}

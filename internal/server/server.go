@@ -1,19 +1,16 @@
 package server
 
 import (
-	"embed"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/kamkali/go-timeline/internal/auth"
 	"github.com/kamkali/go-timeline/internal/config"
-	"github.com/kamkali/go-timeline/internal/domain"
-	"github.com/kamkali/go-timeline/internal/domain/generator"
-	"github.com/kamkali/go-timeline/internal/logger"
 	"github.com/kamkali/go-timeline/internal/server/schema"
+	timeline2 "github.com/kamkali/go-timeline/internal/timeline"
+	"go.uber.org/zap"
 	"golang.org/x/net/context"
-	"io/fs"
 	"log"
 	"net"
 	"net/http"
@@ -24,42 +21,31 @@ import (
 	"time"
 )
 
-//go:embed static
-var staticFS embed.FS
-
 type Server struct {
-	router       *mux.Router
-	config       *config.Config
-	httpServer   *http.Server
-	staticServer http.Handler
+	router     *mux.Router
+	config     *config.Config
+	httpServer *http.Server
 
-	log        logger.Logger
+	log        *zap.Logger
 	jwtManager *auth.JWTManager
 
-	eventService   domain.EventService
-	typeService    domain.TypeService
-	processService domain.ProcessService
-	userService    domain.UserService
-	renderer       *generator.Renderer
+	eventService timeline2.EventService
+	typeService  timeline2.TypeService
+	userService  timeline2.UserService
 }
 
 func New(
 	cfg *config.Config,
-	log logger.Logger,
+	log *zap.Logger,
 	manager *auth.JWTManager,
-	eventService domain.EventService,
-	typesService domain.TypeService,
-	processService domain.ProcessService,
-	userService domain.UserService,
+	eventService timeline2.EventService,
+	typesService timeline2.TypeService,
+	userService timeline2.UserService,
 ) (*Server, error) {
 	r := mux.NewRouter()
-	siteRenderer, err := generator.NewRenderer()
-	if err != nil {
-		return nil, fmt.Errorf("cannot instantiate site renderer: %w", err)
-	}
 	handler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://localhost:3000"}),
-		handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "DELETE", "PUT"}),
+		handlers.AllowedOrigins([]string{"http://localhost:3000", "https://apollo11timeline.herokuapp.com"}),
+		handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "DELETE", "PUT", "OPTIONS"}),
 		handlers.AllowedHeaders([]string{"Origin", "Content-Type", "Authorization"}),
 		handlers.AllowCredentials(),
 	)(r)
@@ -70,20 +56,12 @@ func New(
 			Addr:    net.JoinHostPort(cfg.Server.Host, cfg.Server.Port),
 			Handler: handler,
 		},
-		log:            log,
-		jwtManager:     manager,
-		eventService:   eventService,
-		typeService:    typesService,
-		processService: processService,
-		userService:    userService,
-		renderer:       siteRenderer,
+		log:          log,
+		jwtManager:   manager,
+		eventService: eventService,
+		typeService:  typesService,
+		userService:  userService,
 	}
-
-	fSys, err := fs.Sub(staticFS, "static")
-	if err != nil {
-		return nil, err
-	}
-	s.staticServer = http.FileServer(http.FS(fSys))
 
 	s.registerRoutes()
 
@@ -91,11 +69,6 @@ func New(
 }
 
 func (s *Server) registerRoutes() {
-	{ // public routes
-		s.router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", s.staticServer))
-		s.router.HandleFunc("/", s.renderTimeline()).Methods("GET")
-	}
-
 	{ // Events routes
 		s.router.HandleFunc("/api/events",
 			s.withTimeout(s.config.Server.TimeoutSeconds, s.listEvents()),
@@ -137,28 +110,6 @@ func (s *Server) registerRoutes() {
 
 		s.router.HandleFunc("/api/types",
 			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.createType())),
-		).Methods("POST")
-	}
-
-	{ // Process routes
-		s.router.HandleFunc("/api/process",
-			s.withTimeout(s.config.Server.TimeoutSeconds, s.listProcesses()),
-		).Methods("GET")
-
-		s.router.HandleFunc("/api/process/{id}",
-			s.withTimeout(s.config.Server.TimeoutSeconds, s.getProcess()),
-		).Methods("GET")
-
-		s.router.HandleFunc("/api/process/{id}",
-			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.updateProcess())),
-		).Methods("PUT")
-
-		s.router.HandleFunc("/api/process/{id}",
-			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.deleteProcess())),
-		).Methods("DELETE")
-
-		s.router.HandleFunc("/api/process",
-			s.withAuth(s.withTimeout(s.config.Server.TimeoutSeconds, s.createProcess())),
 		).Methods("POST")
 	}
 
@@ -204,7 +155,7 @@ func (s *Server) Start() {
 }
 
 func (s *Server) writeErrResponse(w http.ResponseWriter, err error, code int, desc string) {
-	s.log.Error(fmt.Errorf("error response: %w", err).Error())
+	s.log.Info(fmt.Errorf("error response: %w", err).Error())
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	jsonErr, err := json.Marshal(schema.ServerError{Description: desc})
@@ -229,24 +180,6 @@ func (s *Server) getIDFromRequest(r *http.Request) (uint, error) {
 	}
 
 	return uint(parseInt), nil
-}
-
-func (s *Server) renderTimeline() func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		events, err := s.eventService.ListEvents(ctx)
-		if err != nil {
-			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
-			return
-		}
-
-		site, err := s.renderer.RenderSite(events)
-		if err != nil {
-			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
-			return
-		}
-		w.Write(site)
-	}
 }
 
 func (s *Server) check() http.HandlerFunc {

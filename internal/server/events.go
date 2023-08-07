@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/kamkali/go-timeline/internal/codec"
-	"github.com/kamkali/go-timeline/internal/domain"
-	"github.com/kamkali/go-timeline/internal/server/schema"
+	schema2 "github.com/kamkali/go-timeline/internal/server/schema"
+	timeline2 "github.com/kamkali/go-timeline/internal/timeline"
 	"golang.org/x/net/context"
 	"io"
 	"net/http"
@@ -17,25 +17,30 @@ func (s *Server) getEvent() http.HandlerFunc {
 		ctx := r.Context()
 		id, err := s.getIDFromRequest(r)
 		if err != nil {
-			s.writeErrResponse(w, err, http.StatusBadRequest, schema.ErrBadRequest)
+			s.writeErrResponse(w, err, http.StatusBadRequest, schema2.ErrBadRequest)
 			return
 		}
 
 		event, err := s.eventService.GetEvent(ctx, id)
 		if err != nil {
-			if errors.Is(err, domain.ErrNotFound) {
-				s.writeErrResponse(w, err, http.StatusNotFound, schema.ErrNotFound)
+			if errors.Is(err, timeline2.ErrNotFound) {
+				s.writeErrResponse(w, err, http.StatusNotFound, schema2.ErrNotFound)
 				return
 			}
-			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema2.ErrInternal)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		eventResponse, err := json.Marshal(schema.EventResponse{Event: event})
+		httpEvent, err := codec.HTTPFromDomainEvent(&event)
 		if err != nil {
-			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema2.ErrInternal)
+			return
+		}
+		eventResponse, err := json.Marshal(schema2.EventResponse{Event: httpEvent})
+		if err != nil {
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema2.ErrInternal)
 			return
 		}
 		if _, err := w.Write(eventResponse); err != nil {
@@ -51,22 +56,22 @@ func (s *Server) updateEvent() http.HandlerFunc {
 
 		domainEvent, err := s.getEventPayload(r)
 		if err != nil {
-			s.writeErrResponse(w, err, http.StatusBadRequest, schema.ErrBadRequest)
+			s.writeErrResponse(w, err, http.StatusBadRequest, schema2.ErrBadRequest)
 			return
 		}
 
 		id, err := s.getIDFromRequest(r)
 		if err != nil {
-			s.writeErrResponse(w, err, http.StatusBadRequest, schema.ErrBadRequest)
+			s.writeErrResponse(w, err, http.StatusBadRequest, schema2.ErrBadRequest)
 			return
 		}
 
 		if err := s.eventService.UpdateEvent(ctx, id, domainEvent); err != nil {
 			if errors.Is(err, context.DeadlineExceeded) {
-				s.writeErrResponse(w, err, http.StatusRequestTimeout, schema.ErrTimedOut)
+				s.writeErrResponse(w, err, http.StatusRequestTimeout, schema2.ErrTimedOut)
 				return
 			}
-			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema2.ErrInternal)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -78,12 +83,12 @@ func (s *Server) deleteEvent() http.HandlerFunc {
 		ctx := r.Context()
 		id, err := s.getIDFromRequest(r)
 		if err != nil {
-			s.writeErrResponse(w, err, http.StatusBadRequest, schema.ErrBadRequest)
+			s.writeErrResponse(w, err, http.StatusBadRequest, schema2.ErrBadRequest)
 			return
 		}
 
 		if err := s.eventService.DeleteEvent(ctx, id); err != nil {
-			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema2.ErrInternal)
 			return
 		}
 
@@ -98,18 +103,29 @@ func (s *Server) listEvents() http.HandlerFunc {
 		events, err := s.eventService.ListEvents(ctx)
 		if err != nil {
 			if errors.Is(err, context.DeadlineExceeded) {
-				s.writeErrResponse(w, err, http.StatusRequestTimeout, schema.ErrTimedOut)
+				s.writeErrResponse(w, err, http.StatusRequestTimeout, schema2.ErrTimedOut)
 				return
 			}
-			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema2.ErrInternal)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		eventsResponse, err := json.Marshal(schema.EventsResponse{Events: events})
+
+		var httpEvents []*schema2.Event
+		for i := range events {
+			httpEvent, err := codec.HTTPFromDomainEvent(&events[i])
+			if err != nil {
+				s.writeErrResponse(w, err, http.StatusInternalServerError, schema2.ErrInternal)
+				return
+			}
+			httpEvents = append(httpEvents, httpEvent)
+		}
+
+		eventsResponse, err := json.Marshal(schema2.EventsResponse{Events: httpEvents})
 		if err != nil {
-			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema2.ErrInternal)
 			return
 		}
 		if _, err := w.Write(eventsResponse); err != nil {
@@ -125,41 +141,41 @@ func (s *Server) createEvent() http.HandlerFunc {
 
 		domainEvent, err := s.getEventPayload(r)
 		if err != nil {
-			s.writeErrResponse(w, err, http.StatusBadRequest, schema.ErrBadRequest)
+			s.writeErrResponse(w, err, http.StatusBadRequest, schema2.ErrBadRequest)
 			return
 		}
 
 		created, err := s.eventService.CreateEvent(ctx, domainEvent)
 		if err != nil {
 			if errors.Is(err, context.DeadlineExceeded) {
-				s.writeErrResponse(w, err, http.StatusRequestTimeout, schema.ErrTimedOut)
+				s.writeErrResponse(w, err, http.StatusRequestTimeout, schema2.ErrTimedOut)
 				return
 			}
-			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema2.ErrInternal)
 			return
 		}
 
-		er := schema.EventCreatedResponse{EventID: created}
+		er := schema2.EventCreatedResponse{EventID: created}
 		resp, err := json.Marshal(er)
 		if err != nil {
-			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema2.ErrInternal)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		if _, err := w.Write(resp); err != nil {
-			s.writeErrResponse(w, err, http.StatusInternalServerError, schema.ErrInternal)
+			s.writeErrResponse(w, err, http.StatusInternalServerError, schema2.ErrInternal)
 			return
 		}
 	}
 }
 
-func (s *Server) getEventPayload(r *http.Request) (*domain.Event, error) {
+func (s *Server) getEventPayload(r *http.Request) (*timeline2.Event, error) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, fmt.Errorf("cannot read body")
 	}
-	var event schema.Event
+	var event schema2.Event
 	if err := json.Unmarshal(body, &event); err != nil {
 		return nil, fmt.Errorf("cannot unmarshal body")
 	}
